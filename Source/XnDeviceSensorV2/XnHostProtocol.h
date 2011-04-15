@@ -57,6 +57,7 @@ enum EPsProtocolOpCodes
 	OPCODE_ALGORITM_PARAMS = 22,
 	OPCODE_SET_CMOS_BLANKING = 34,
 	OPCODE_GET_CMOS_BLANKING = 35,
+	OPCODE_GET_CMOS_PRESETS = 36,
 };
 
 enum EPsProtocolOpCodes_V400
@@ -111,9 +112,11 @@ enum EPsProtocolOpCodes_V017
 typedef enum
 {
 	XN_HOST_PROTOCOL_ALGORITHM_DEPTH_INFO	= 0x00,
+	// --avin mod--
 	XN_HOST_PROTOCOL_ALGORITHM_REGISTRATION	= 0x40,
 	XN_HOST_PROTOCOL_ALGORITHM_PADDING		= 0x41,
 	XN_HOST_PROTOCOL_ALGORITHM_BLANKING		= 0x06,
+	XN_HOST_PROTOCOL_ALGORITHM_DEVICE_INFO	= 0x07,
 	XN_HOST_PROTOCOL_ALGORITHM_FREQUENCY	= 0x80
 } XnHostProtocolAlgorithmType;
 
@@ -217,6 +220,8 @@ XnStatus XnHostProtocolGetDepthAGCBin(XnDevicePrivateData* pDevicePrivateData, X
 
 XnStatus XnHostProtocolSetCmosBlanking	(XnDevicePrivateData* pDevicePrivateData, XnUInt16 nLines, XnCMOSType nCMOSID, XnUInt16 nNumberOfFrames);
 XnStatus XnHostProtocolGetCmosBlanking	(XnDevicePrivateData* pDevicePrivateData, XnCMOSType nCMOSID, XnUInt16* pnLines);
+
+XnStatus XnHostProtocolGetCmosPresets	(XnDevicePrivateData* pDevicePrivateData, XnCMOSType nCMOSID, XnCmosPreset* aPresets, XnUInt32& nCount);
 
 
 #endif

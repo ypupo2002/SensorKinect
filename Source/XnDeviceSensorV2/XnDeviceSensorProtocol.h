@@ -88,7 +88,8 @@ typedef struct XnSensorProtocolResponseHeader
 {
 	XnUInt16 nMagic;
 	XnUInt16 nType;
-	XnUInt8  nReserve;
+	// --avin mod--
+	XnUInt8  nPacketID;
 	XnUInt8  nUnknown;
 	XnUInt16 nBufSize;
 	XnUInt32 nTimeStamp;
@@ -119,6 +120,7 @@ typedef struct XnSpecificUsbDevice
 	XnUInt32 nIgnoreBytes;
 	XnUInt32 nChunkReadBytes;
 	XnSpecificUsbDeviceState CurrState;
+	XnUInt32 nTimeout;
 } XnSpecificUsbDevice;
 
 
