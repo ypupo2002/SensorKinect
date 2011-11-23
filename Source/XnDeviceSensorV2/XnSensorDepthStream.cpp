@@ -1,25 +1,24 @@
-/*****************************************************************************
-*                                                                            *
-*  PrimeSense Sensor 5.0 Alpha                                               *
-*  Copyright (C) 2010 PrimeSense Ltd.                                        *
-*                                                                            *
-*  This file is part of PrimeSense Common.                                   *
-*                                                                            *
-*  PrimeSense Sensor is free software: you can redistribute it and/or modify *
-*  it under the terms of the GNU Lesser General Public License as published  *
-*  by the Free Software Foundation, either version 3 of the License, or      *
-*  (at your option) any later version.                                       *
-*                                                                            *
-*  PrimeSense Sensor is distributed in the hope that it will be useful,      *
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of            *
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the              *
-*  GNU Lesser General Public License for more details.                       *
-*                                                                            *
-*  You should have received a copy of the GNU Lesser General Public License  *
-*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>. *
-*                                                                            *
-*****************************************************************************/
-
+/****************************************************************************
+*                                                                           *
+*  PrimeSense Sensor 5.x Alpha                                              *
+*  Copyright (C) 2011 PrimeSense Ltd.                                       *
+*                                                                           *
+*  This file is part of PrimeSense Sensor.                                  *
+*                                                                           *
+*  PrimeSense Sensor is free software: you can redistribute it and/or modify*
+*  it under the terms of the GNU Lesser General Public License as published *
+*  by the Free Software Foundation, either version 3 of the License, or     *
+*  (at your option) any later version.                                      *
+*                                                                           *
+*  PrimeSense Sensor is distributed in the hope that it will be useful,     *
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the             *
+*  GNU Lesser General Public License for more details.                      *
+*                                                                           *
+*  You should have received a copy of the GNU Lesser General Public License *
+*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>.*
+*                                                                           *
+****************************************************************************/
 //---------------------------------------------------------------------------
 // Includes
 //---------------------------------------------------------------------------
@@ -51,10 +50,10 @@
 //---------------------------------------------------------------------------
 // XnSensorDepthStream class
 //---------------------------------------------------------------------------
-XnSensorDepthStream::XnSensorDepthStream(const XnChar* strDeviceName, const XnChar* strName, XnSensorObjects* pObjects, XnUInt32 nBufferCount) : 
+XnSensorDepthStream::XnSensorDepthStream(const XnChar* strDeviceName, const XnChar* strName, XnSensorObjects* pObjects, XnUInt32 nBufferCount, XnBool bAllowOtherUsers) : 
 	XnDepthStream(strName, FALSE, XN_DEVICE_SENSOR_MAX_DEPTH, XN_SHIFTS_MAX_SHIFT),
 	m_Helper(pObjects),
-	m_BufferPool(nBufferCount, strDeviceName, strName, XN_DEPTH_MAX_BUFFER_SIZE),
+	m_BufferPool(nBufferCount, strDeviceName, strName, XN_DEPTH_MAX_BUFFER_SIZE, bAllowOtherUsers),
 	m_SharedBufferName(XN_STREAM_PROPERTY_SHARED_BUFFER_NAME, m_BufferPool.GetSharedMemoryName()),
 	m_InputFormat(XN_STREAM_PROPERTY_INPUT_FORMAT, XN_DEPTH_STREAM_DEFAULT_INPUT_FORMAT),
 	m_DepthRegistration(XN_STREAM_PROPERTY_REGISTRATION, XN_DEPTH_STREAM_DEFAULT_REGISTRATION),
@@ -141,6 +140,9 @@ XnStatus XnSensorDepthStream::Init()
 	XN_IS_STATUS_OK(nRetVal);
 
 	nRetVal = EmitterDCmosDistanceProperty().UnsafeUpdateValue(m_Helper.GetFixedParams()->GetEmitterDCmosDistance());
+	XN_IS_STATUS_OK(nRetVal);
+
+	nRetVal = GetDCmosRCmosDistanceProperty().UnsafeUpdateValue(m_Helper.GetFixedParams()->GetDCmosRCmosDistance());
 	XN_IS_STATUS_OK(nRetVal);
 
 	// init helper

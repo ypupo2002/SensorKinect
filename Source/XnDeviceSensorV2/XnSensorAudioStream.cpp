@@ -1,30 +1,24 @@
-/*****************************************************************************
-*                                                                            *
-*  PrimeSense Sensor 5.0 Alpha                                               *
-*  Copyright (C) 2010 PrimeSense Ltd.                                        *
-*                                                                            *
-*  This file is part of PrimeSense Common.                                   *
-*                                                                            *
-*  PrimeSense Sensor is free software: you can redistribute it and/or modify *
-*  it under the terms of the GNU Lesser General Public License as published  *
-*  by the Free Software Foundation, either version 3 of the License, or      *
-*  (at your option) any later version.                                       *
-*                                                                            *
-*  PrimeSense Sensor is distributed in the hope that it will be useful,      *
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of            *
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the              *
-*  GNU Lesser General Public License for more details.                       *
-*                                                                            *
-*  You should have received a copy of the GNU Lesser General Public License  *
-*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>. *
-*                                                                            *
-*****************************************************************************/
-
-
-
-
-
-
+/****************************************************************************
+*                                                                           *
+*  PrimeSense Sensor 5.x Alpha                                              *
+*  Copyright (C) 2011 PrimeSense Ltd.                                       *
+*                                                                           *
+*  This file is part of PrimeSense Sensor.                                  *
+*                                                                           *
+*  PrimeSense Sensor is free software: you can redistribute it and/or modify*
+*  it under the terms of the GNU Lesser General Public License as published *
+*  by the Free Software Foundation, either version 3 of the License, or     *
+*  (at your option) any later version.                                      *
+*                                                                           *
+*  PrimeSense Sensor is distributed in the hope that it will be useful,     *
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the             *
+*  GNU Lesser General Public License for more details.                      *
+*                                                                           *
+*  You should have received a copy of the GNU Lesser General Public License *
+*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>.*
+*                                                                           *
+****************************************************************************/
 //---------------------------------------------------------------------------
 // Includes
 //---------------------------------------------------------------------------
@@ -46,10 +40,11 @@
 //---------------------------------------------------------------------------
 // Code
 //---------------------------------------------------------------------------
-XnSensorAudioStream::XnSensorAudioStream(const XnChar* strDeviceName, const XnChar* StreamName, XnSensorObjects* pObjects) :
+XnSensorAudioStream::XnSensorAudioStream(const XnChar* strDeviceName, const XnChar* StreamName, XnSensorObjects* pObjects, XnBool bAllowOtherUsers) :
 	XnAudioStream(StreamName, XN_AUDIO_MAX_NUMBER_OF_CHANNELS),
 	m_strDeviceName(strDeviceName),
 	m_Helper(pObjects),
+	m_bAllowOtherUsers(bAllowOtherUsers),
 	m_LeftChannelVolume(XN_STREAM_PROPERTY_LEFT_CHANNEL_VOLUME, XN_AUDIO_STREAM_DEFAULT_VOLUME),
 	m_RightChannelVolume(XN_STREAM_PROPERTY_RIGHT_CHANNEL_VOLUME, XN_AUDIO_STREAM_DEFAULT_VOLUME),
 	m_SharedBufferName(XN_STREAM_PROPERTY_SHARED_BUFFER_NAME),
@@ -489,7 +484,7 @@ XnStatus XnSensorAudioStream::ReallocBuffer()
 		nRetVal = RequiredSizeProperty().UnsafeUpdateValue(nMaxBufferSize);
 		XN_IS_STATUS_OK(nRetVal);
 
-		nRetVal = xnOSCreateSharedMemory(strSharedName, nSharedBufferSize, XN_OS_FILE_READ | XN_OS_FILE_WRITE, &m_hSharedMemory);
+		nRetVal = xnOSCreateSharedMemoryEx(strSharedName, nSharedBufferSize, XN_OS_FILE_READ | XN_OS_FILE_WRITE, m_bAllowOtherUsers, &m_hSharedMemory);
 		XN_IS_STATUS_OK(nRetVal);
 
 		XnUChar* pAddress;

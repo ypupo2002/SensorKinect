@@ -1,25 +1,24 @@
-/*****************************************************************************
-*                                                                            *
-*  PrimeSense Sensor 5.0 Alpha                                               *
-*  Copyright (C) 2010 PrimeSense Ltd.                                        *
-*                                                                            *
-*  This file is part of PrimeSense Common.                                   *
-*                                                                            *
-*  PrimeSense Sensor is free software: you can redistribute it and/or modify *
-*  it under the terms of the GNU Lesser General Public License as published  *
-*  by the Free Software Foundation, either version 3 of the License, or      *
-*  (at your option) any later version.                                       *
-*                                                                            *
-*  PrimeSense Sensor is distributed in the hope that it will be useful,      *
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of            *
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the              *
-*  GNU Lesser General Public License for more details.                       *
-*                                                                            *
-*  You should have received a copy of the GNU Lesser General Public License  *
-*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>. *
-*                                                                            *
-*****************************************************************************/
-
+/****************************************************************************
+*                                                                           *
+*  PrimeSense Sensor 5.x Alpha                                              *
+*  Copyright (C) 2011 PrimeSense Ltd.                                       *
+*                                                                           *
+*  This file is part of PrimeSense Sensor.                                  *
+*                                                                           *
+*  PrimeSense Sensor is free software: you can redistribute it and/or modify*
+*  it under the terms of the GNU Lesser General Public License as published *
+*  by the Free Software Foundation, either version 3 of the License, or     *
+*  (at your option) any later version.                                      *
+*                                                                           *
+*  PrimeSense Sensor is distributed in the hope that it will be useful,     *
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the             *
+*  GNU Lesser General Public License for more details.                      *
+*                                                                           *
+*  You should have received a copy of the GNU Lesser General Public License *
+*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>.*
+*                                                                           *
+****************************************************************************/
 //---------------------------------------------------------------------------
 // Includes
 //---------------------------------------------------------------------------
@@ -40,10 +39,10 @@
 //---------------------------------------------------------------------------
 // XnSensorImageStream class
 //---------------------------------------------------------------------------
-XnSensorImageStream::XnSensorImageStream(const XnChar* strDeviceName, const XnChar* StreamName, XnSensorObjects* pObjects, XnUInt32 nBufferCount) : 
+XnSensorImageStream::XnSensorImageStream(const XnChar* strDeviceName, const XnChar* StreamName, XnSensorObjects* pObjects, XnUInt32 nBufferCount, XnBool bAllowOtherUsers) : 
 	XnImageStream(StreamName, FALSE),
 	m_Helper(pObjects),
-	m_BufferPool(nBufferCount, strDeviceName, StreamName, GetMaxBufferSize(m_Helper.GetFirmwareVersion())),
+	m_BufferPool(nBufferCount, strDeviceName, StreamName, GetMaxBufferSize(m_Helper.GetFirmwareVersion()), bAllowOtherUsers),
 	m_SharedBufferName(XN_STREAM_PROPERTY_SHARED_BUFFER_NAME, m_BufferPool.GetSharedMemoryName()),
 	m_InputFormat(XN_STREAM_PROPERTY_INPUT_FORMAT, XN_IMAGE_STREAM_DEFAULT_INPUT_FORMAT),
 	m_AntiFlicker(XN_STREAM_PROPERTY_FLICKER, XN_IMAGE_STREAM_DEFAULT_FLICKER),
@@ -73,6 +72,12 @@ XnSensorImageStream::XnSensorImageStream(const XnChar* strDeviceName, const XnCh
 	m_ActualRead(XN_STREAM_PROPERTY_ACTUAL_READ_DATA, FALSE)
 {
 	m_ActualRead.UpdateSetCallback(SetActualReadCallback, this);
+}
+
+static XnStatus AddSupportedMode(XnArray<XnCmosPreset>& modes, XnUInt16 nInputFormat, XnUInt16 nResolution, XnUInt16 nFPS)
+{
+	XnCmosPreset preset = { nInputFormat, nResolution, nFPS };
+	return modes.AddLast(preset);
 }
 
 XnStatus XnSensorImageStream::Init()
@@ -148,46 +153,88 @@ XnStatus XnSensorImageStream::Init()
 	}
 	else
 	{
-		// register known types
-		XnCmosPreset aSupportedModes[] = 
-		{
-			{ XN_IO_IMAGE_FORMAT_YUV422, XN_RESOLUTION_QVGA, 30 },
-			{ XN_IO_IMAGE_FORMAT_YUV422, XN_RESOLUTION_QVGA, 60 },
-			{ XN_IO_IMAGE_FORMAT_YUV422, XN_RESOLUTION_VGA, 30 },
-			{ XN_IO_IMAGE_FORMAT_UNCOMPRESSED_YUV422, XN_RESOLUTION_QVGA, 30 },
-			{ XN_IO_IMAGE_FORMAT_UNCOMPRESSED_YUV422, XN_RESOLUTION_QVGA, 60 },
-			{ XN_IO_IMAGE_FORMAT_UNCOMPRESSED_YUV422, XN_RESOLUTION_VGA, 30 },
-			// --avin mod--			
-			{ XN_IO_IMAGE_FORMAT_UNCOMPRESSED_BAYER,  XN_RESOLUTION_SXGA, 15 },
-		};
-		nRetVal = AddSupportedModes(aSupportedModes, sizeof(aSupportedModes)/sizeof(aSupportedModes[0]));
+		XnArray<XnCmosPreset> supportedModes(30);
+
+		// Uncompressed modes are only supported in ISO (not BULK)
+		XnBool bUncompressedAllowed = m_Helper.GetPrivateData()->pSpecificImageUsb->pUsbConnection->bIsISO;
+
+		// start with common modes supported by all
+		nRetVal = AddSupportedMode(supportedModes, XN_IO_IMAGE_FORMAT_YUV422, XN_RESOLUTION_QVGA, 30);
+		XN_IS_STATUS_OK(nRetVal);
+		nRetVal = AddSupportedMode(supportedModes, XN_IO_IMAGE_FORMAT_YUV422, XN_RESOLUTION_QVGA, 60);
+		XN_IS_STATUS_OK(nRetVal);
+		nRetVal = AddSupportedMode(supportedModes, XN_IO_IMAGE_FORMAT_YUV422, XN_RESOLUTION_VGA, 30);
 		XN_IS_STATUS_OK(nRetVal);
 
-		if (m_Helper.GetFirmwareVersion() >= XN_SENSOR_FW_VER_5_2)
+		// --avin mod--
+		nRetVal = AddSupportedMode(supportedModes, XN_IO_IMAGE_FORMAT_UNCOMPRESSED_BAYER, XN_RESOLUTION_SXGA, 15);
+		XN_IS_STATUS_OK(nRetVal);
+		nRetVal = AddSupportedMode(supportedModes, XN_IO_IMAGE_FORMAT_UNCOMPRESSED_BAYER, XN_RESOLUTION_QVGA, 30);
+		XN_IS_STATUS_OK(nRetVal);
+		nRetVal = AddSupportedMode(supportedModes, XN_IO_IMAGE_FORMAT_UNCOMPRESSED_BAYER, XN_RESOLUTION_QVGA, 60);
+		XN_IS_STATUS_OK(nRetVal);		
+		nRetVal = AddSupportedMode(supportedModes, XN_IO_IMAGE_FORMAT_UNCOMPRESSED_BAYER, XN_RESOLUTION_VGA, 30);
+		XN_IS_STATUS_OK(nRetVal);
+		
+		
+		// add uncompressed ones
+		if (bUncompressedAllowed)
 		{
-			XnCmosPreset aSupportedModes25[] = 
-			{
-				{ XN_IO_IMAGE_FORMAT_YUV422, XN_RESOLUTION_QVGA, 25 },
-				{ XN_IO_IMAGE_FORMAT_YUV422, XN_RESOLUTION_VGA, 25 },
-				{ XN_IO_IMAGE_FORMAT_UNCOMPRESSED_YUV422, XN_RESOLUTION_QVGA, 25 },
-				{ XN_IO_IMAGE_FORMAT_UNCOMPRESSED_YUV422, XN_RESOLUTION_VGA, 25 },
-			};
-			nRetVal = AddSupportedModes(aSupportedModes25, sizeof(aSupportedModes25)/sizeof(aSupportedModes25[0]));
+			nRetVal = AddSupportedMode(supportedModes, XN_IO_IMAGE_FORMAT_UNCOMPRESSED_YUV422, XN_RESOLUTION_QVGA, 30);
+			XN_IS_STATUS_OK(nRetVal);
+			nRetVal = AddSupportedMode(supportedModes, XN_IO_IMAGE_FORMAT_UNCOMPRESSED_YUV422, XN_RESOLUTION_QVGA, 60);
+			XN_IS_STATUS_OK(nRetVal);
+			nRetVal = AddSupportedMode(supportedModes, XN_IO_IMAGE_FORMAT_UNCOMPRESSED_YUV422, XN_RESOLUTION_VGA, 30);
 			XN_IS_STATUS_OK(nRetVal);
 		}
 
+		// starting with FW 5.2, 25 FPS is also supported
+		if (m_Helper.GetFirmwareVersion() >= XN_SENSOR_FW_VER_5_2)
+		{
+			nRetVal = AddSupportedMode(supportedModes, XN_IO_IMAGE_FORMAT_YUV422, XN_RESOLUTION_QVGA, 25);
+			XN_IS_STATUS_OK(nRetVal);
+			nRetVal = AddSupportedMode(supportedModes, XN_IO_IMAGE_FORMAT_YUV422, XN_RESOLUTION_VGA, 25);
+			XN_IS_STATUS_OK(nRetVal);
+
+			if (bUncompressedAllowed)
+			{
+				nRetVal = AddSupportedMode(supportedModes, XN_IO_IMAGE_FORMAT_UNCOMPRESSED_YUV422, XN_RESOLUTION_QVGA, 25);
+				XN_IS_STATUS_OK(nRetVal);
+				nRetVal = AddSupportedMode(supportedModes, XN_IO_IMAGE_FORMAT_UNCOMPRESSED_YUV422, XN_RESOLUTION_VGA, 25);
+				XN_IS_STATUS_OK(nRetVal);
+			}
+		}
+
+		// high-res
 		if (m_Helper.GetFirmwareVersion() >= XN_SENSOR_FW_VER_5_3)
 		{
-			XnCmosPreset highRes = { XN_IO_IMAGE_FORMAT_BAYER, XN_RESOLUTION_SXGA, 30 };
-			nRetVal = AddSupportedModes(&highRes, 1);
+			nRetVal = AddSupportedMode(supportedModes, XN_IO_IMAGE_FORMAT_BAYER, XN_RESOLUTION_SXGA, 30);
 			XN_IS_STATUS_OK(nRetVal);
+
+			// starting with 5.3.28, YUV is also supported in high-res
+			if (m_Helper.GetPrivateData()->Version.nMajor > 5 ||
+				(m_Helper.GetPrivateData()->Version.nMajor == 5 && m_Helper.GetPrivateData()->Version.nMinor > 3) ||
+				(m_Helper.GetPrivateData()->Version.nMajor == 5 && m_Helper.GetPrivateData()->Version.nMinor == 3 && m_Helper.GetPrivateData()->Version.nBuild >= 28))
+			{
+				nRetVal = AddSupportedMode(supportedModes, XN_IO_IMAGE_FORMAT_YUV422, XN_RESOLUTION_SXGA, 30);
+				XN_IS_STATUS_OK(nRetVal);
+
+				if (bUncompressedAllowed)
+				{
+					nRetVal = AddSupportedMode(supportedModes, XN_IO_IMAGE_FORMAT_UNCOMPRESSED_YUV422, XN_RESOLUTION_SXGA, 30);
+					XN_IS_STATUS_OK(nRetVal);
+				}
+			}
 		}
 		else if (m_Helper.GetFirmwareVersion() >= XN_SENSOR_FW_VER_5_2)
 		{
-			XnCmosPreset highRes = { XN_IO_IMAGE_FORMAT_BAYER, XN_RESOLUTION_UXGA, 30 };
-			nRetVal = AddSupportedModes(&highRes, 1);
+			// on 5.2, high-res was UXGA
+			nRetVal = AddSupportedMode(supportedModes, XN_IO_IMAGE_FORMAT_BAYER, XN_RESOLUTION_UXGA, 30);
 			XN_IS_STATUS_OK(nRetVal);
 		}
+
+		nRetVal = AddSupportedModes(supportedModes.GetData(), supportedModes.GetSize());
+		XN_IS_STATUS_OK(nRetVal);
 	}
 
 	return (XN_STATUS_OK);
@@ -268,36 +315,51 @@ XnStatus XnSensorImageStream::ValidateMode()
 	XnIOImageFormats nInputFormat = (XnIOImageFormats)m_InputFormat.GetValue();
 	XnOutputFormats nOutputFormat = GetOutputFormat();
 	XnResolutions nResolution = GetResolution();
+	XnUInt32 nFPS = GetFPS();
 
-	// --avin mod--
-	// Removed to enable 1280x1024 Image
-	// check resolution
-	/*
-	if ((nResolution == XN_RESOLUTION_UXGA || nResolution == XN_RESOLUTION_SXGA) && nInputFormat != XN_IO_IMAGE_FORMAT_BAYER)
+	// check that input format matches output format
+	switch (nOutputFormat)
 	{
-		XN_LOG_WARNING_RETURN(XN_STATUS_DEVICE_BAD_PARAM, XN_MASK_DEVICE_SENSOR, "UXGA resolution is only supported with BAYER input!");
+	case XN_OUTPUT_FORMAT_RGB24:
+		if (nInputFormat != XN_IO_IMAGE_FORMAT_YUV422 &&
+			nInputFormat != XN_IO_IMAGE_FORMAT_UNCOMPRESSED_YUV422 &&
+			nInputFormat != XN_IO_IMAGE_FORMAT_BAYER)
+		{
+			// --avin mod--
+			//XN_LOG_WARNING_RETURN(XN_STATUS_DEVICE_BAD_PARAM, XN_MASK_DEVICE_SENSOR, "Input format %d cannot be converted to RGB24!", nInputFormat);
+		}
+		break;
+	case XN_OUTPUT_FORMAT_YUV422:
+		if (nInputFormat != XN_IO_IMAGE_FORMAT_YUV422 &&
+			nInputFormat != XN_IO_IMAGE_FORMAT_UNCOMPRESSED_YUV422)
+		{
+			XN_LOG_WARNING_RETURN(XN_STATUS_DEVICE_BAD_PARAM, XN_MASK_DEVICE_SENSOR, "Input format %d cannot be converted to YUV422!", nInputFormat);
+		}
+		break;
+	case XN_OUTPUT_FORMAT_JPEG:
+		if (nInputFormat != XN_IO_IMAGE_FORMAT_JPEG)
+		{
+			XN_LOG_WARNING_RETURN(XN_STATUS_DEVICE_BAD_PARAM, XN_MASK_DEVICE_SENSOR, "Input format %d cannot be converted to JPEG!", nInputFormat);
+		}
+		break;
+	case XN_OUTPUT_FORMAT_GRAYSCALE8:
+		if (nInputFormat != XN_IO_IMAGE_FORMAT_UNCOMPRESSED_GRAY8 &&
+			nInputFormat != XN_IO_IMAGE_FORMAT_UNCOMPRESSED_BAYER &&
+			nInputFormat != XN_IO_IMAGE_FORMAT_BAYER)
+		{
+			XN_LOG_WARNING_RETURN(XN_STATUS_DEVICE_BAD_PARAM, XN_MASK_DEVICE_SENSOR, "Input format %d cannot be converted to Gray8!", nInputFormat);
+		}
+		break;
+	default:
+		// we shouldn't have reached here. Theres a check at SetOutputFormat.
+		XN_ASSERT(FALSE);
+		XN_LOG_WARNING_RETURN(XN_STATUS_DEVICE_BAD_PARAM, XN_MASK_DEVICE_SENSOR, "Unsupported image output format: %d!", nOutputFormat);
 	}
-	*/
 
-	// check output format
-	if (nOutputFormat == XN_OUTPUT_FORMAT_GRAYSCALE8 && nInputFormat != XN_IO_IMAGE_FORMAT_BAYER)
-	{
-		XN_LOG_WARNING_RETURN(XN_STATUS_DEVICE_BAD_PARAM, XN_MASK_DEVICE_SENSOR, "Grayscale8 output requires BAYER input!");
-	}
-	else if (nOutputFormat == XN_OUTPUT_FORMAT_YUV422 && nInputFormat != XN_IO_IMAGE_FORMAT_YUV422 && nInputFormat != XN_IO_IMAGE_FORMAT_UNCOMPRESSED_YUV422)
-	{
-		XN_LOG_WARNING_RETURN(XN_STATUS_DEVICE_BAD_PARAM, XN_MASK_DEVICE_SENSOR, "YUV output requires YUV input!");
-	}
-
-	// check input format
-	if (nInputFormat == XN_IO_IMAGE_FORMAT_BAYER && nResolution != XN_RESOLUTION_UXGA && nResolution != XN_RESOLUTION_SXGA)
-	{
-		XN_LOG_WARNING_RETURN(XN_STATUS_DEVICE_BAD_PARAM, XN_MASK_DEVICE_SENSOR, "BAYER input requires SXGA/UXGA resolution!");
-	}
-	else if (nInputFormat == XN_IO_IMAGE_FORMAT_JPEG && nOutputFormat != XN_OUTPUT_FORMAT_RGB24 && nOutputFormat != XN_OUTPUT_FORMAT_JPEG)
-	{
-		XN_LOG_WARNING_RETURN(XN_STATUS_DEVICE_BAD_PARAM, XN_MASK_DEVICE_SENSOR, "Jpeg input is only supported for RGB24 or JPEG output!");
-	}
+	// now check that mode exists
+	XnCmosPreset preset = { nInputFormat, nResolution, nFPS };
+	nRetVal = ValidateSupportedMode(preset);
+	XN_IS_STATUS_OK(nRetVal);
 
 	return (XN_STATUS_OK);
 }

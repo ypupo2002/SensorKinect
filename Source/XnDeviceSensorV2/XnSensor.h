@@ -1,29 +1,24 @@
-/*****************************************************************************
-*                                                                            *
-*  PrimeSense Sensor 5.0 Alpha                                               *
-*  Copyright (C) 2010 PrimeSense Ltd.                                        *
-*                                                                            *
-*  This file is part of PrimeSense Common.                                   *
-*                                                                            *
-*  PrimeSense Sensor is free software: you can redistribute it and/or modify *
-*  it under the terms of the GNU Lesser General Public License as published  *
-*  by the Free Software Foundation, either version 3 of the License, or      *
-*  (at your option) any later version.                                       *
-*                                                                            *
-*  PrimeSense Sensor is distributed in the hope that it will be useful,      *
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of            *
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the              *
-*  GNU Lesser General Public License for more details.                       *
-*                                                                            *
-*  You should have received a copy of the GNU Lesser General Public License  *
-*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>. *
-*                                                                            *
-*****************************************************************************/
-
-
-
-
-
+/****************************************************************************
+*                                                                           *
+*  PrimeSense Sensor 5.x Alpha                                              *
+*  Copyright (C) 2011 PrimeSense Ltd.                                       *
+*                                                                           *
+*  This file is part of PrimeSense Sensor.                                  *
+*                                                                           *
+*  PrimeSense Sensor is free software: you can redistribute it and/or modify*
+*  it under the terms of the GNU Lesser General Public License as published *
+*  by the Free Software Foundation, either version 3 of the License, or     *
+*  (at your option) any later version.                                      *
+*                                                                           *
+*  PrimeSense Sensor is distributed in the hope that it will be useful,     *
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the             *
+*  GNU Lesser General Public License for more details.                      *
+*                                                                           *
+*  You should have received a copy of the GNU Lesser General Public License *
+*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>.*
+*                                                                           *
+****************************************************************************/
 #ifndef __XN_SENSOR_H__
 #define __XN_SENSOR_H__
 
@@ -97,6 +92,7 @@ public:
 	XnStatus ConfigureModuleFromGlobalFile(const XnChar* strModule, const XnChar* strSection = NULL);
 
 	const XnChar* GetUSBPath() { return m_USBPath.GetValue(); }
+	XnBool AreOtherUsersAllowed() { return (m_AllowOtherUsers.GetValue() == TRUE); }
 
 
 protected:
@@ -136,6 +132,7 @@ private:
 	// Setters
 	//---------------------------------------------------------------------------
 	XnStatus SetInterface(XnSensorUsbInterface nInterface);
+	XnStatus SetAllowOtherUsers(XnBool bAllowOtherUsers);
 	XnStatus SetNumberOfBuffers(XnUInt32 nCount);
 	XnStatus SetReadEndpoint1(XnBool bRead);
 	XnStatus SetReadEndpoint2(XnBool bRead);
@@ -151,6 +148,7 @@ private:
 	// Callbacks
 	//---------------------------------------------------------------------------
 	static XnStatus XN_CALLBACK_TYPE SetInterfaceCallback(XnActualIntProperty* pSender, XnUInt64 nValue, void* pCookie);
+	static XnStatus XN_CALLBACK_TYPE SetAllowOtherUsersCallback(XnActualIntProperty* pSender, XnUInt64 nValue, void* pCookie);
 	static XnStatus XN_CALLBACK_TYPE SetNumberOfBuffersCallback(XnActualIntProperty* pSender, XnUInt64 nValue, void* pCookie);
 	static XnStatus XN_CALLBACK_TYPE SetReadEndpoint1Callback(XnActualIntProperty* pSender, XnUInt64 nValue, void* pCookie);
 	static XnStatus XN_CALLBACK_TYPE SetReadEndpoint2Callback(XnActualIntProperty* pSender, XnUInt64 nValue, void* pCookie);
@@ -198,6 +196,7 @@ private:
 	XnActualStringProperty m_USBPath;
 	XnActualStringProperty m_DeviceName;
 	XnActualStringProperty m_VendorSpecificData;
+	XnActualIntProperty m_AllowOtherUsers;
 
 	XnSensorFirmware m_Firmware;
 	XnDevicePrivateData m_DevicePrivateData;

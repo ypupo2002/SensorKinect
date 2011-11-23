@@ -1,30 +1,24 @@
-/*****************************************************************************
-*                                                                            *
-*  PrimeSense Sensor 5.0 Alpha                                               *
-*  Copyright (C) 2010 PrimeSense Ltd.                                        *
-*                                                                            *
-*  This file is part of PrimeSense Common.                                   *
-*                                                                            *
-*  PrimeSense Sensor is free software: you can redistribute it and/or modify *
-*  it under the terms of the GNU Lesser General Public License as published  *
-*  by the Free Software Foundation, either version 3 of the License, or      *
-*  (at your option) any later version.                                       *
-*                                                                            *
-*  PrimeSense Sensor is distributed in the hope that it will be useful,      *
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of            *
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the              *
-*  GNU Lesser General Public License for more details.                       *
-*                                                                            *
-*  You should have received a copy of the GNU Lesser General Public License  *
-*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>. *
-*                                                                            *
-*****************************************************************************/
-
-
-
-
-
-
+/****************************************************************************
+*                                                                           *
+*  PrimeSense Sensor 5.x Alpha                                              *
+*  Copyright (C) 2011 PrimeSense Ltd.                                       *
+*                                                                           *
+*  This file is part of PrimeSense Sensor.                                  *
+*                                                                           *
+*  PrimeSense Sensor is free software: you can redistribute it and/or modify*
+*  it under the terms of the GNU Lesser General Public License as published *
+*  by the Free Software Foundation, either version 3 of the License, or     *
+*  (at your option) any later version.                                      *
+*                                                                           *
+*  PrimeSense Sensor is distributed in the hope that it will be useful,     *
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the             *
+*  GNU Lesser General Public License for more details.                      *
+*                                                                           *
+*  You should have received a copy of the GNU Lesser General Public License *
+*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>.*
+*                                                                           *
+****************************************************************************/
 #ifndef _XN_STREAM_PARAMS_H_
 #define _XN_STREAM_PARAMS_H_
 
@@ -188,6 +182,8 @@
 #define XN_STREAM_PROPERTY_ZERO_PLANE_PIXEL_SIZE	"ZPPS"
 /** Real */ 
 #define XN_STREAM_PROPERTY_EMITTER_DCMOS_DISTANCE	"LDDIS"
+/** Real */ 
+#define XN_STREAM_PROPERTY_DCMOS_RCMOS_DISTANCE		"DCRCDIS"
 /** Boolean */
 #define XN_STREAM_PROPERTY_GMC_MODE					"GmcMode"
 
@@ -346,6 +342,8 @@
 #define XN_MODULE_PROPERTY_ERROR_STATE				"ErrorState"
 /** Boolean */
 #define XN_MODULE_PROPERTY_ENABLE_MULTI_PROCESS		"EnableMultiProcess"
+/** Boolean */
+#define XN_MODULE_PROPERTY_ENABLE_MULTI_USERS		"EnableMultiUsers"
 /** String */
 #define XN_MODULE_PROPERTY_PHYSICAL_DEVICE_NAME		"PhysicalDeviceName"
 /** String */
@@ -457,6 +455,7 @@ typedef enum
 	XN_IO_IMAGE_FORMAT_JPEG_MONO = 4,
 	XN_IO_IMAGE_FORMAT_UNCOMPRESSED_YUV422 = 5,
 	XN_IO_IMAGE_FORMAT_UNCOMPRESSED_BAYER = 6,
+	XN_IO_IMAGE_FORMAT_UNCOMPRESSED_GRAY8 = 7,
 } XnIOImageFormats;
 
 typedef enum

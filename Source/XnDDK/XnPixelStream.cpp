@@ -1,30 +1,24 @@
-/*****************************************************************************
-*                                                                            *
-*  PrimeSense Sensor 5.0 Alpha                                               *
-*  Copyright (C) 2010 PrimeSense Ltd.                                        *
-*                                                                            *
-*  This file is part of PrimeSense Common.                                   *
-*                                                                            *
-*  PrimeSense Sensor is free software: you can redistribute it and/or modify *
-*  it under the terms of the GNU Lesser General Public License as published  *
-*  by the Free Software Foundation, either version 3 of the License, or      *
-*  (at your option) any later version.                                       *
-*                                                                            *
-*  PrimeSense Sensor is distributed in the hope that it will be useful,      *
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of            *
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the              *
-*  GNU Lesser General Public License for more details.                       *
-*                                                                            *
-*  You should have received a copy of the GNU Lesser General Public License  *
-*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>. *
-*                                                                            *
-*****************************************************************************/
-
-
-
-
-
-
+/****************************************************************************
+*                                                                           *
+*  PrimeSense Sensor 5.x Alpha                                              *
+*  Copyright (C) 2011 PrimeSense Ltd.                                       *
+*                                                                           *
+*  This file is part of PrimeSense Sensor.                                  *
+*                                                                           *
+*  PrimeSense Sensor is free software: you can redistribute it and/or modify*
+*  it under the terms of the GNU Lesser General Public License as published *
+*  by the Free Software Foundation, either version 3 of the License, or     *
+*  (at your option) any later version.                                      *
+*                                                                           *
+*  PrimeSense Sensor is distributed in the hope that it will be useful,     *
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the             *
+*  GNU Lesser General Public License for more details.                      *
+*                                                                           *
+*  You should have received a copy of the GNU Lesser General Public License *
+*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>.*
+*                                                                           *
+****************************************************************************/
 //---------------------------------------------------------------------------
 // Includes
 //---------------------------------------------------------------------------
@@ -47,10 +41,10 @@ XnPixelStream::XnPixelStream(const XnChar* csType, const XnChar* csName, XnBool 
 	m_Cropping(XN_STREAM_PROPERTY_CROPPING, &m_CroppingData, sizeof(XnCropping), ReadCroppingFromFileCallback),
 	m_SupportedModesCount(XN_STREAM_PROPERTY_SUPPORT_MODES_COUNT, 0),
 	m_SupportedModes(XN_STREAM_PROPERTY_SUPPORT_MODES),
-	m_bAllowCustomResolutions(bAllowCustomResolutions)
+	m_bAllowCustomResolutions(bAllowCustomResolutions),
+	m_supportedModesData(30)
 {
 	xnOSMemSet(&m_CroppingData, 0, sizeof(XnCropping));
-	m_supportedModesData.Reserve(30);
 	m_SupportedModes.UpdateGetCallback(GetSupportedModesCallback, this);
 }
 
@@ -114,6 +108,23 @@ XnStatus XnPixelStream::AddSupportedModes(XnCmosPreset* aPresets, XnUInt32 nCoun
 	XN_IS_STATUS_OK(nRetVal);
 
 	return (XN_STATUS_OK);
+}
+
+XnStatus XnPixelStream::ValidateSupportedMode(const XnCmosPreset& preset)
+{
+	XnStatus nRetVal = XN_STATUS_OK;
+	
+	for (XnUInt32 i = 0; i < m_supportedModesData.GetSize(); ++i)
+	{
+		if (preset.nFormat == m_supportedModesData[i].nFormat &&
+			preset.nResolution == m_supportedModesData[i].nResolution && 
+			preset.nFPS == m_supportedModesData[i].nFPS)
+		{
+			return (XN_STATUS_OK);
+		}
+	}
+
+	XN_LOG_WARNING_RETURN(XN_STATUS_DEVICE_BAD_PARAM, XN_MASK_DDK, "Mode is not supported (format: %d, resolution: %d, FPS: %d)!", preset.nFormat, preset.nResolution, preset.nFPS);
 }
 
 XnStatus XnPixelStream::GetSupportedModes(XnCmosPreset* aPresets, XnUInt32& nCount)

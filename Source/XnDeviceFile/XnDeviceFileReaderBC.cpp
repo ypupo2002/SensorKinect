@@ -1,30 +1,24 @@
-/*****************************************************************************
-*                                                                            *
-*  PrimeSense Sensor 5.0 Alpha                                               *
-*  Copyright (C) 2010 PrimeSense Ltd.                                        *
-*                                                                            *
-*  This file is part of PrimeSense Common.                                   *
-*                                                                            *
-*  PrimeSense Sensor is free software: you can redistribute it and/or modify *
-*  it under the terms of the GNU Lesser General Public License as published  *
-*  by the Free Software Foundation, either version 3 of the License, or      *
-*  (at your option) any later version.                                       *
-*                                                                            *
-*  PrimeSense Sensor is distributed in the hope that it will be useful,      *
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of            *
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the              *
-*  GNU Lesser General Public License for more details.                       *
-*                                                                            *
-*  You should have received a copy of the GNU Lesser General Public License  *
-*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>. *
-*                                                                            *
-*****************************************************************************/
-
-
-
-
-
-
+/****************************************************************************
+*                                                                           *
+*  PrimeSense Sensor 5.x Alpha                                              *
+*  Copyright (C) 2011 PrimeSense Ltd.                                       *
+*                                                                           *
+*  This file is part of PrimeSense Sensor.                                  *
+*                                                                           *
+*  PrimeSense Sensor is free software: you can redistribute it and/or modify*
+*  it under the terms of the GNU Lesser General Public License as published *
+*  by the Free Software Foundation, either version 3 of the License, or     *
+*  (at your option) any later version.                                      *
+*                                                                           *
+*  PrimeSense Sensor is distributed in the hope that it will be useful,     *
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the             *
+*  GNU Lesser General Public License for more details.                      *
+*                                                                           *
+*  You should have received a copy of the GNU Lesser General Public License *
+*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>.*
+*                                                                           *
+****************************************************************************/
 //---------------------------------------------------------------------------
 // Includes
 //---------------------------------------------------------------------------
@@ -272,6 +266,9 @@ XnStatus BCSetDepthProperties(XnPropertySet* pSet, XnStreamPropertiesV3* pStream
 	nRetVal = XnPropertySetAddStringProperty(pSet, XN_STREAM_NAME_DEPTH, XN_STREAM_PROPERTY_TYPE, XN_STREAM_TYPE_DEPTH);
 	XN_IS_STATUS_OK(nRetVal);
 
+	nRetVal = XnPropertySetAddIntProperty(pSet, XN_STREAM_NAME_DEPTH, XN_STREAM_PROPERTY_STATE, pStreamProperties->DepthFormat != XN_DEPTH_FORMAT_DISABLED);
+	XN_IS_STATUS_OK(nRetVal);
+
 	XnCropping cropping = {0};
 	XnGeneralBuffer gbCropping = XN_PACK_GENERAL_BUFFER(cropping);
 	nRetVal = XnPropertySetAddGeneralProperty(pSet, XN_STREAM_NAME_DEPTH, XN_STREAM_PROPERTY_CROPPING, &gbCropping);
@@ -391,6 +388,9 @@ XnStatus BCSetImageProperties(XnPropertySet* pSet, XnStreamPropertiesV3* pStream
 	nRetVal = XnPropertySetAddStringProperty(pSet, XN_STREAM_NAME_IMAGE, XN_STREAM_PROPERTY_TYPE, XN_STREAM_TYPE_IMAGE);
 	XN_IS_STATUS_OK(nRetVal);
 
+	nRetVal = XnPropertySetAddIntProperty(pSet, XN_STREAM_NAME_IMAGE, XN_STREAM_PROPERTY_STATE, pStreamProperties->ImageFormat != XN_IMAGE_FORMAT_DISABLED);
+	XN_IS_STATUS_OK(nRetVal);
+
 	XnCropping cropping = {0};
 	XnGeneralBuffer gbCropping = XN_PACK_GENERAL_BUFFER(cropping);
 	nRetVal = XnPropertySetAddGeneralProperty(pSet, XN_STREAM_NAME_IMAGE, XN_STREAM_PROPERTY_CROPPING, &gbCropping);
@@ -457,6 +457,9 @@ XnStatus BCSetAudioProperties(XnPropertySet* pSet, XnStreamPropertiesV3* pStream
 	XN_IS_STATUS_OK(nRetVal);
 
 	nRetVal = XnPropertySetAddStringProperty(pSet, XN_STREAM_NAME_AUDIO, XN_STREAM_PROPERTY_TYPE, XN_STREAM_TYPE_AUDIO);
+	XN_IS_STATUS_OK(nRetVal);
+
+	nRetVal = XnPropertySetAddIntProperty(pSet, XN_STREAM_NAME_AUDIO, XN_STREAM_PROPERTY_STATE, pStreamProperties->AudioFormat != XN_AUDIO_FORMAT_DISABLED);
 	XN_IS_STATUS_OK(nRetVal);
 
 	nRetVal = XnPropertySetAddIntProperty(pSet, XN_STREAM_NAME_AUDIO, XN_STREAM_PROPERTY_NUMBER_OF_FRAMES, (XnUInt64)pStreamProperties->nNumOfFrames);

@@ -1,30 +1,24 @@
-/*****************************************************************************
-*                                                                            *
-*  PrimeSense Sensor 5.0 Alpha                                               *
-*  Copyright (C) 2010 PrimeSense Ltd.                                        *
-*                                                                            *
-*  This file is part of PrimeSense Common.                                   *
-*                                                                            *
-*  PrimeSense Sensor is free software: you can redistribute it and/or modify *
-*  it under the terms of the GNU Lesser General Public License as published  *
-*  by the Free Software Foundation, either version 3 of the License, or      *
-*  (at your option) any later version.                                       *
-*                                                                            *
-*  PrimeSense Sensor is distributed in the hope that it will be useful,      *
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of            *
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the              *
-*  GNU Lesser General Public License for more details.                       *
-*                                                                            *
-*  You should have received a copy of the GNU Lesser General Public License  *
-*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>. *
-*                                                                            *
-*****************************************************************************/
-
-
-
-
-
-
+/****************************************************************************
+*                                                                           *
+*  PrimeSense Sensor 5.x Alpha                                              *
+*  Copyright (C) 2011 PrimeSense Ltd.                                       *
+*                                                                           *
+*  This file is part of PrimeSense Sensor.                                  *
+*                                                                           *
+*  PrimeSense Sensor is free software: you can redistribute it and/or modify*
+*  it under the terms of the GNU Lesser General Public License as published *
+*  by the Free Software Foundation, either version 3 of the License, or     *
+*  (at your option) any later version.                                      *
+*                                                                           *
+*  PrimeSense Sensor is distributed in the hope that it will be useful,     *
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the             *
+*  GNU Lesser General Public License for more details.                      *
+*                                                                           *
+*  You should have received a copy of the GNU Lesser General Public License *
+*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>.*
+*                                                                           *
+****************************************************************************/
 //---------------------------------------------------------------------------
 // Includes
 //---------------------------------------------------------------------------
@@ -72,6 +66,7 @@ XnSensorClient::~XnSensorClient()
 void XnSensorClient::SetConfigDir(const XnChar* strConfigDir)
 {
 	strcpy(m_strConfigDir, strConfigDir);
+	XnSensor::ResolveGlobalConfigFileName(m_strConfigFile, sizeof(m_strConfigFile), strConfigDir);
 }
 
 XnStatus XnSensorClient::GetDefinition(XnDeviceDefinition* pDeviceDefinition)
@@ -102,10 +97,16 @@ XnStatus XnSensorClient::InitImpl(const XnDeviceConfig* pDeviceConfig)
 	XN_MUTEX_HANDLE hServerRunningMutex = NULL;
 	XnOSEvent serverRunningEvent;
 
-	nRetVal = serverRunningEvent.Open(XN_SENSOR_SERVER_RUNNING_EVENT_NAME);
+	XnUInt32 nValue;
+	if (XN_STATUS_OK == xnOSReadIntFromINI(m_strConfigFile, XN_SENSOR_SERVER_CONFIG_FILE_SECTION, XN_MODULE_PROPERTY_ENABLE_MULTI_USERS, &nValue))
+	{
+		m_bAllowServerFromOtherUser = (nValue == TRUE);
+	}
+
+	nRetVal = serverRunningEvent.Open(XN_SENSOR_SERVER_RUNNING_EVENT_NAME, m_bAllowServerFromOtherUser);
 	if (nRetVal != XN_STATUS_OK)
 	{
-		nRetVal = serverRunningEvent.Create(XN_SENSOR_SERVER_RUNNING_EVENT_NAME, TRUE);
+		nRetVal = serverRunningEvent.Create(XN_SENSOR_SERVER_RUNNING_EVENT_NAME, TRUE, m_bAllowServerFromOtherUser);
 		if (nRetVal != XN_STATUS_OK)
 		{
 			xnLogError(XN_MASK_SENSOR_CLIENT, "Failed to create server running event: %s", xnGetStatusString(nRetVal));
@@ -113,7 +114,7 @@ XnStatus XnSensorClient::InitImpl(const XnDeviceConfig* pDeviceConfig)
 		}
 	}
 	
-	nRetVal = xnOSCreateNamedMutex(&hServerRunningMutex, XN_SENSOR_SERVER_RUNNING_MUTEX_NAME);
+	nRetVal = xnOSCreateNamedMutexEx(&hServerRunningMutex, XN_SENSOR_SERVER_RUNNING_MUTEX_NAME, m_bAllowServerFromOtherUser);
 	XN_IS_STATUS_OK(nRetVal);
 	
 	nRetVal = xnOSLockMutex(hServerRunningMutex, XN_SENSOR_SERVER_RUNNING_MUTEX_TIMEOUT);

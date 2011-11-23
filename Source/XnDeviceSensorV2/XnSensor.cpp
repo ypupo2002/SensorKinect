@@ -1,30 +1,24 @@
-/*****************************************************************************
-*                                                                            *
-*  PrimeSense Sensor 5.0 Alpha                                               *
-*  Copyright (C) 2010 PrimeSense Ltd.                                        *
-*                                                                            *
-*  This file is part of PrimeSense Common.                                   *
-*                                                                            *
-*  PrimeSense Sensor is free software: you can redistribute it and/or modify *
-*  it under the terms of the GNU Lesser General Public License as published  *
-*  by the Free Software Foundation, either version 3 of the License, or      *
-*  (at your option) any later version.                                       *
-*                                                                            *
-*  PrimeSense Sensor is distributed in the hope that it will be useful,      *
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of            *
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the              *
-*  GNU Lesser General Public License for more details.                       *
-*                                                                            *
-*  You should have received a copy of the GNU Lesser General Public License  *
-*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>. *
-*                                                                            *
-*****************************************************************************/
-
-
-
-
-
-
+/****************************************************************************
+*                                                                           *
+*  PrimeSense Sensor 5.x Alpha                                              *
+*  Copyright (C) 2011 PrimeSense Ltd.                                       *
+*                                                                           *
+*  This file is part of PrimeSense Sensor.                                  *
+*                                                                           *
+*  PrimeSense Sensor is free software: you can redistribute it and/or modify*
+*  it under the terms of the GNU Lesser General Public License as published *
+*  by the Free Software Foundation, either version 3 of the License, or     *
+*  (at your option) any later version.                                      *
+*                                                                           *
+*  PrimeSense Sensor is distributed in the hope that it will be useful,     *
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the             *
+*  GNU Lesser General Public License for more details.                      *
+*                                                                           *
+*  You should have received a copy of the GNU Lesser General Public License *
+*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>.*
+*                                                                           *
+****************************************************************************/
 //---------------------------------------------------------------------------
 // Includes
 //---------------------------------------------------------------------------
@@ -45,6 +39,7 @@
 #define XN_SENSOR_MAX_STREAM_COUNT						5
 #define XN_SENSOR_FRAME_SYNC_MAX_DIFF					3
 #define XN_SENSOR_DEFAULT_CLOSE_STREAMS_ON_SHUTDOWN		TRUE
+#define XN_SENSOR_DEFAULT_ENABLE_MULTI_USERS			FALSE
 // --avin mod--
 #define XN_GLOBAL_CONFIG_FILE_NAME						"GlobalDefaultsKinect.ini"
 
@@ -86,6 +81,7 @@ XnSensor::XnSensor() :
 	m_USBPath(XN_MODULE_PROPERTY_USB_PATH),
 	m_DeviceName(XN_MODULE_PROPERTY_PHYSICAL_DEVICE_NAME),
 	m_VendorSpecificData(XN_MODULE_PROPERTY_VENDOR_SPECIFIC_DATA),
+	m_AllowOtherUsers(XN_MODULE_PROPERTY_ENABLE_MULTI_USERS, XN_SENSOR_DEFAULT_ENABLE_MULTI_USERS),
 	m_Firmware(&m_DevicePrivateData),
 	m_FixedParams(&m_Firmware, &m_DevicePrivateData),
 	m_SensorIO(&m_DevicePrivateData.SensorHandle),
@@ -101,6 +97,7 @@ XnSensor::XnSensor() :
 
 	m_ResetSensorOnStartup.UpdateSetCallbackToDefault();
 	m_Interface.UpdateSetCallback(SetInterfaceCallback, this);
+	m_AllowOtherUsers.UpdateSetCallback(SetAllowOtherUsersCallback, this);
 	m_NumberOfBuffers.UpdateSetCallback(SetNumberOfBuffersCallback, this);
 	m_ReadFromEP1.UpdateSetCallback(SetReadEndpoint1Callback, this);
 	m_ReadFromEP2.UpdateSetCallback(SetReadEndpoint2Callback, this);
@@ -241,8 +238,8 @@ XnStatus XnSensor::InitSensor(const XnDeviceConfig* pDeviceConfig)
 	XN_IS_STATUS_OK(nRetVal);
 
 	XnDeviceInformation deviceInfo;
-	strcpy(deviceInfo.strDeviceName, "PrimeSense Sensor");
-	strcpy(deviceInfo.strVendorData, "");
+	strcpy(deviceInfo.strDeviceName, "Microsoft Kinect");
+	strcpy(deviceInfo.strVendorData, "PrimeSense");
 
 	// try to take device information (only supported from 5.3.25)
 	if (pDevicePrivateData->Version.nMajor > 5 ||
@@ -347,7 +344,7 @@ XnStatus XnSensor::CreateDeviceModule(XnDeviceModuleHolder** ppModuleHolder)
 		&m_ReadFromEP2, &m_ReadFromEP3, &m_ReadData, &m_NumberOfBuffers, &m_FirmwareParam, 
 		&m_CmosBlankingUnits, &m_CmosBlankingTime, &m_Reset, &m_FirmwareMode, &m_Version, 
 		&m_FixedParam, &m_FrameSync, &m_CloseStreamsOnShutdown, &m_InstancePointer, &m_ID,
-		&m_USBPath, &m_DeviceName, &m_VendorSpecificData,
+		&m_USBPath, &m_DeviceName, &m_VendorSpecificData, &m_AllowOtherUsers,
 	};
 
 	nRetVal = pModule->AddProperties(pProps, sizeof(pProps)/sizeof(XnProperty*));
@@ -400,28 +397,28 @@ XnStatus XnSensor::CreateStreamModule(const XnChar* StreamType, const XnChar* St
 	if (strcmp(StreamType, XN_STREAM_TYPE_DEPTH) == 0)
 	{
 		XnSensorDepthStream* pDepthStream;
-		XN_VALIDATE_NEW(pDepthStream, XnSensorDepthStream, GetUSBPath(), StreamName, &m_Objects, m_NumberOfBuffers.GetValue());
+		XN_VALIDATE_NEW(pDepthStream, XnSensorDepthStream, GetUSBPath(), StreamName, &m_Objects, m_NumberOfBuffers.GetValue(), AreOtherUsersAllowed());
 		pStream = pDepthStream;
 		pHelper = pDepthStream->GetHelper();
 	}
 	else if (strcmp(StreamType, XN_STREAM_TYPE_IMAGE) == 0)
 	{
 		XnSensorImageStream* pImageStream;
-		XN_VALIDATE_NEW(pImageStream, XnSensorImageStream, GetUSBPath(), StreamName, &m_Objects, m_NumberOfBuffers.GetValue());
+		XN_VALIDATE_NEW(pImageStream, XnSensorImageStream, GetUSBPath(), StreamName, &m_Objects, m_NumberOfBuffers.GetValue(), AreOtherUsersAllowed());
 		pStream = pImageStream;
 		pHelper = pImageStream->GetHelper();
 	}
 	else if (strcmp(StreamType, XN_STREAM_TYPE_IR) == 0)
 	{
 		XnSensorIRStream* pIRStream;
-		XN_VALIDATE_NEW(pIRStream, XnSensorIRStream, GetUSBPath(), StreamName, &m_Objects, m_NumberOfBuffers.GetValue());
+		XN_VALIDATE_NEW(pIRStream, XnSensorIRStream, GetUSBPath(), StreamName, &m_Objects, m_NumberOfBuffers.GetValue(), AreOtherUsersAllowed());
 		pStream = pIRStream;
 		pHelper = pIRStream->GetHelper();
 	}
 	else if (strcmp(StreamType, XN_STREAM_TYPE_AUDIO) == 0)
 	{
 		XnSensorAudioStream* pAudioStream;
-		XN_VALIDATE_NEW(pAudioStream, XnSensorAudioStream, GetUSBPath(), StreamName, &m_Objects);
+		XN_VALIDATE_NEW(pAudioStream, XnSensorAudioStream, GetUSBPath(), StreamName, &m_Objects, AreOtherUsersAllowed());
 		pStream = pAudioStream;
 		pHelper = pAudioStream->GetHelper();
 	}
@@ -750,6 +747,9 @@ XnStatus XnSensor::InitReading()
 	nRetVal = m_SensorIO.OpenDataEndPoints((XnSensorUsbInterface)m_Interface.GetValue());
 	XN_IS_STATUS_OK(nRetVal);
 
+	nRetVal = m_Interface.UnsafeUpdateValue(m_SensorIO.GetCurrentInterface());
+	XN_IS_STATUS_OK(nRetVal);
+
 	// take frequency information
 	XnFrequencyInformation FrequencyInformation;
 
@@ -1006,6 +1006,23 @@ XnStatus XnSensor::SetInterface(XnSensorUsbInterface nInterface)
 	return (XN_STATUS_OK);
 }
 
+XnStatus XnSensor::SetAllowOtherUsers(XnBool bAllowOtherUsers)
+{
+	XnStatus nRetVal = XN_STATUS_OK;
+
+	// we only allow changing this *before* creating any streams
+	if (m_ReadData.GetValue() == TRUE &&
+		m_AllowOtherUsers.GetValue() != bAllowOtherUsers)
+	{
+		return (XN_STATUS_DEVICE_PROPERTY_READ_ONLY);
+	}
+
+	nRetVal = m_AllowOtherUsers.UnsafeUpdateValue(bAllowOtherUsers);
+	XN_IS_STATUS_OK(nRetVal);
+
+	return (XN_STATUS_OK);
+}
+
 XnStatus XnSensor::SetNumberOfBuffers(XnUInt32 nCount)
 {
 	XnStatus nRetVal = XN_STATUS_OK;
@@ -1234,6 +1251,12 @@ XnStatus XN_CALLBACK_TYPE XnSensor::SetInterfaceCallback(XnActualIntProperty* pS
 {
 	XnSensor* pThis = (XnSensor*)pCookie;
 	return pThis->XnSensor::SetInterface((XnSensorUsbInterface)nValue);
+}
+
+XnStatus XN_CALLBACK_TYPE XnSensor::SetAllowOtherUsersCallback(XnActualIntProperty* pSender, XnUInt64 nValue, void* pCookie)
+{
+	XnSensor* pThis = (XnSensor*)pCookie;
+	return pThis->XnSensor::SetAllowOtherUsers(nValue == 1);
 }
 
 XnStatus XN_CALLBACK_TYPE XnSensor::SetNumberOfBuffersCallback(XnActualIntProperty* pSender, XnUInt64 nValue, void* pCookie)
