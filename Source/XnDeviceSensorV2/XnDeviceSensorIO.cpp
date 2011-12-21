@@ -45,7 +45,6 @@ typedef enum
 //---------------------------------------------------------------------------
 // Code
 //---------------------------------------------------------------------------
-
 XnSensorIO::XnSensorIO(XN_SENSOR_HANDLE* pSensorHandle) :
 	m_pSensorHandle(pSensorHandle),
 	m_bMiscSupported(FALSE),
@@ -69,7 +68,6 @@ XnStatus XnSensorIO::OpenDevice(const XnChar* strPath)
 
 	xnLogVerbose(XN_MASK_DEVICE_IO, "Connecting to USB device...");
 
-	XnConnectionString aConnections[1];
 	if (strPath == NULL || strcmp(strPath, "*:0") == 0)
 	{
 		// support old style API
@@ -84,7 +82,7 @@ XnStatus XnSensorIO::OpenDevice(const XnChar* strPath)
 		strPath = aConnections[0];
 	}
 
-	// try to open a 6.0 device
+	// try to open the device
 	xnLogVerbose(XN_MASK_DEVICE_IO, "Trying to open sensor '%s'...", strPath);
 	nRetVal = xnUSBOpenDeviceByPath(strPath, &m_pSensorHandle->USBDevice);
 	XN_IS_STATUS_OK(nRetVal);
@@ -126,28 +124,30 @@ XnStatus XnSensorIO::OpenDevice(const XnChar* strPath)
 	return XN_STATUS_OK;
 }
 
-XnStatus XnSensorIO::OpenDataEndPoints(XnSensorUsbInterface nInterface)
+XnStatus XnSensorIO::OpenDataEndPoints(XnSensorUsbInterface nInterface, const XnFirmwareInfo& fwInfo)
 {
 	XnStatus nRetVal = XN_STATUS_OK;
 
 	// try to set requested interface
 	if (nInterface != XN_SENSOR_USB_INTERFACE_DEFAULT)
 	{
-		XnFWUsbInterface nFWInterface;
+		XnUInt8 nAlternativeInterface = 0;
+
 		switch (nInterface)
 		{
 		case XN_SENSOR_USB_INTERFACE_ISO_ENDPOINTS:
-			nFWInterface = XN_FW_USB_INTERFACE_ISO;
+			nAlternativeInterface = fwInfo.nISOAlternativeInterface;
 			break;
 		case XN_SENSOR_USB_INTERFACE_BULK_ENDPOINTS:
-			nFWInterface = XN_FW_USB_INTERFACE_BULK;
+			nAlternativeInterface = fwInfo.nBulkAlternativeInterface;
 			break;
 		default:
+			XN_ASSERT(FALSE);
 			XN_LOG_WARNING_RETURN(XN_STATUS_USB_INTERFACE_NOT_SUPPORTED, XN_MASK_DEVICE_IO, "Unknown interface type: %d", nInterface);
 		}
 
-		xnLogVerbose(XN_MASK_DEVICE_IO, "Setting USB interface to %d...", nFWInterface);
-		nRetVal = xnUSBSetInterface(m_pSensorHandle->USBDevice, 0, nFWInterface);
+		xnLogVerbose(XN_MASK_DEVICE_IO, "Setting USB alternative interface to %d...", nAlternativeInterface);
+		nRetVal = xnUSBSetInterface(m_pSensorHandle->USBDevice, 0, nAlternativeInterface);
 		XN_IS_STATUS_OK(nRetVal);
 	}
 
@@ -380,19 +380,31 @@ XnStatus Enumerate(XnUInt16 nProduct, XnStringsHash& devicesSet)
 XnStatus XnSensorIO::EnumerateSensors(XnConnectionString* aConnectionStrings, XnUInt32* pnCount)
 {
 	XnStatus nRetVal = XN_STATUS_OK;
-	XnBool bIsPresent = FALSE;
 
 	nRetVal = xnUSBInit();
 	if (nRetVal != XN_STATUS_OK && nRetVal != XN_STATUS_USB_ALREADY_INIT)
 		return nRetVal;
 
+// Temporary patch: "Cache" the devices since running USB enum on the MacOSX platform takes several seconds due to problems in libusb!		
+#if (XN_PLATFORM == XN_PLATFORM_MACOSX)	
+	static XnStringsHash devicesSet;
+	
+	if (devicesSet.Size() == 0)
+	{
+		// --avin mod--
+		// search for a kinect device
+		nRetVal = Enumerate(XN_SENSOR_PRODUCT_ID_KINECT, devicesSet);
+		XN_IS_STATUS_OK(nRetVal);
+	}
+#else
 	XnStringsHash devicesSet;
 
 	// --avin mod--
 	// search for a kinect device
 	nRetVal = Enumerate(XN_SENSOR_PRODUCT_ID_KINECT, devicesSet);
 	XN_IS_STATUS_OK(nRetVal);
-
+#endif
+	
 	// now copy back
 	XnUInt32 nCount = 0;
 	for (XnStringsHash::ConstIterator it = devicesSet.begin(); it != devicesSet.end(); ++it, ++nCount)
@@ -416,7 +428,6 @@ XnStatus XnSensorIO::EnumerateSensors(XnConnectionString* aConnectionStrings, Xn
 
 XnStatus XnSensorIO::IsSensorLowBandwidth(const XnConnectionString connectionString, XnBool* pbIsLowBandwidth)
 {
-	XnStatus nRetVal = XN_STATUS_OK;
 	XnConnectionString cpMatchString;
 
 	*pbIsLowBandwidth = FALSE;
