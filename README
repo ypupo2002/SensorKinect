@@ -9,10 +9,13 @@ You must use this kinect mod version with the unstable OpenNI release which is a
 http://www.openni.org/Downloads/OpenNIModules.aspx
 
 Changes:
+v0.91:
+	1) Removed an unnecessary USB set interface command that caused timeout problems on Linux & Mac.
+
 v0.9:
 	1) Updated codebase to the latest OpenNI / Sensor version (1.5.2.7 / 5.1.0.25)
 	2) Changed the Bayer-to-RGB function to use the ROS (www.ros.org) code as requested by many community members.
-       (Thanks to Suat Gedikli from Willow Garage for writing the code and to Raphael Dumusc for the OpenNI adaptation!)
+	   (Thanks to Suat Gedikli from Willow Garage for writing the code and to Raphael Dumusc for the OpenNI adaptation!)
 
 v0.8:
 	1) Updated codebase to the latest OpenNI / Sensor version (1.4.0.2 / 5.0.5.1)

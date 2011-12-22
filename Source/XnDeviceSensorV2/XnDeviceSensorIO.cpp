@@ -145,10 +145,12 @@ XnStatus XnSensorIO::OpenDataEndPoints(XnSensorUsbInterface nInterface, const Xn
 			XN_ASSERT(FALSE);
 			XN_LOG_WARNING_RETURN(XN_STATUS_USB_INTERFACE_NOT_SUPPORTED, XN_MASK_DEVICE_IO, "Unknown interface type: %d", nInterface);
 		}
-
+// --avin mod--
+/*
 		xnLogVerbose(XN_MASK_DEVICE_IO, "Setting USB alternative interface to %d...", nAlternativeInterface);
 		nRetVal = xnUSBSetInterface(m_pSensorHandle->USBDevice, 0, nAlternativeInterface);
 		XN_IS_STATUS_OK(nRetVal);
+*/
 	}
 
 	xnLogVerbose(XN_MASK_DEVICE_IO, "Opening endpoints...");
