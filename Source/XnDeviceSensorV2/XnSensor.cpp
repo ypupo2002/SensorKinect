@@ -40,7 +40,8 @@
 #define XN_SENSOR_FRAME_SYNC_MAX_DIFF					3
 #define XN_SENSOR_DEFAULT_CLOSE_STREAMS_ON_SHUTDOWN		TRUE
 #define XN_SENSOR_DEFAULT_HOST_TIMESTAMPS				FALSE
-#define XN_GLOBAL_CONFIG_FILE_NAME						"GlobalDefaults.ini"
+// --avin mod--
+#define XN_GLOBAL_CONFIG_FILE_NAME						"GlobalDefaultsKinect.ini"
 
 // on weak platforms (Arm), we prefer to use BULK
 #if (XN_PLATFORM == XN_PLATFORM_LINUX_ARM || XN_PLATFORM == XN_PLATFORM_ANDROID_ARM)

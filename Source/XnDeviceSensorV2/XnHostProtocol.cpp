@@ -212,6 +212,11 @@ XnStatus XnHostProtocolInitFWParams(XnDevicePrivateData* pDevicePrivateData, XnU
 		{ XN_IO_IMAGE_FORMAT_UNCOMPRESSED_YUV422, XN_RESOLUTION_QVGA, 30 },
 		{ XN_IO_IMAGE_FORMAT_UNCOMPRESSED_YUV422, XN_RESOLUTION_QVGA, 60 },
 		{ XN_IO_IMAGE_FORMAT_UNCOMPRESSED_YUV422, XN_RESOLUTION_VGA, 30 },
+		// --avin mod--
+		{ XN_IO_IMAGE_FORMAT_UNCOMPRESSED_BAYER, XN_RESOLUTION_SXGA, 15 },
+		{ XN_IO_IMAGE_FORMAT_UNCOMPRESSED_BAYER, XN_RESOLUTION_QVGA, 30 },
+		{ XN_IO_IMAGE_FORMAT_UNCOMPRESSED_BAYER, XN_RESOLUTION_QVGA, 60 },
+		{ XN_IO_IMAGE_FORMAT_UNCOMPRESSED_BAYER, XN_RESOLUTION_VGA, 30 },
 	};
 	nRetVal = pDevicePrivateData->FWInfo.imageIsoModes.AddLast(imageIsoModes, sizeof(imageIsoModes)/sizeof(imageIsoModes[0]));
 	XN_IS_STATUS_OK(nRetVal);
@@ -224,6 +229,8 @@ XnStatus XnHostProtocolInitFWParams(XnDevicePrivateData* pDevicePrivateData, XnU
 		{ 0, XN_RESOLUTION_QVGA, 60 },
 		{ 0, XN_RESOLUTION_VGA, 30 },
 		{ 0, XN_RESOLUTION_SXGA, 30 },
+		// --avin mod--
+		{ 0, XN_RESOLUTION_SXGA, 15 },
 	};
 	nRetVal = pDevicePrivateData->FWInfo.irModes.AddLast(irModes, sizeof(irModes)/sizeof(irModes[0]));
 	XN_IS_STATUS_OK(nRetVal);

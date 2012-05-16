@@ -48,8 +48,9 @@
 //---------------------------------------------------------------------------
 #define XN_DEVICE_MAJORVERSION 1
 #define XN_DEVICE_MINORVERSION 0
-#define XN_DEVICE_NAME "SensorV2"
-#define XN_DEVICE_DESCRIPTION "Xiron I/O Prime Sensor v2/v3/v4 Device"
+// --avin mod--
+#define XN_DEVICE_NAME "SensorKinect"
+#define XN_DEVICE_DESCRIPTION "Xiron I/O Kinect Device"
 
 #define XN_DEVICE_SENSOR_THREAD_KILL_TIMEOUT 5000
 

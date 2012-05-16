@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="XnDeviceSensorV2"
+	Name="XnDeviceSensorV2KM"
 	ProjectGUID="{1653839A-ABA5-4c0e-9EA2-2640B0275894}"
-	RootNamespace="XnDeviceSensorV2"
+	RootNamespace="XnDeviceSensorV2KM"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="0"
 	>

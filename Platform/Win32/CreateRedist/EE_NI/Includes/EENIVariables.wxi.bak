@@ -13,7 +13,6 @@
   <!-- Full version number to display -->
   <?define VersionNumber="$(var.MajorVersion).$(var.MinorVersion).$(var.MaintenanceVersion).$(var.BuildVersion)" ?>
 
-<!-- avin mod -->
   <?define OpenNIVersion="1.5.4.0"?>
 
   <!--

@@ -80,7 +80,8 @@ mkdir -p ../$REDIST_DIR/Config
 # copy files to redist
 cp ../../../GPL.txt ../$REDIST_DIR
 cp ../../../LGPL.txt ../$REDIST_DIR
-cp ../Bin/$PLATFORM-Release/libXnDeviceSensorV2.* ../$REDIST_DIR/Lib
+#--avin mod--
+cp ../Bin/$PLATFORM-Release/libXnDeviceSensorV2KM.* ../$REDIST_DIR/Lib
 cp ../Bin/$PLATFORM-Release/libXnDeviceFile.* ../$REDIST_DIR/Lib
 cp ../Bin/$PLATFORM-Release/libXnDDK.* ../$REDIST_DIR/Lib
 cp ../Bin/$PLATFORM-Release/libXnFormats.* ../$REDIST_DIR/Lib
@@ -89,7 +90,8 @@ cp ../Bin/$PLATFORM-Release/XnSensorServer ../$REDIST_DIR/Bin
 cp ../Install/* ../$REDIST_DIR/Install
 cp install.sh ../$REDIST_DIR
 
-cp ../../../Data/GlobalDefaults.ini ../$REDIST_DIR/Config
+#--avin mod--
+cp ../../../Data/GlobalDefaultsKinect.ini ../$REDIST_DIR/Config
 
 # create tar
 echo "Creating tar..."

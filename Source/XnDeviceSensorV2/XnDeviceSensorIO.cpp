@@ -29,7 +29,8 @@
 //---------------------------------------------------------------------------
 // Defines
 //---------------------------------------------------------------------------
-#define XN_SENSOR_VENDOR_ID			0x1D27
+// --avin mod--
+#define XN_SENSOR_VENDOR_ID			0x045E
 
 //---------------------------------------------------------------------------
 // Enums
@@ -43,11 +44,10 @@ typedef enum
 //---------------------------------------------------------------------------
 // Globals
 //---------------------------------------------------------------------------
+// --avin mod--
 XnUInt16 XnSensorIO::ms_supportedProducts[] = 
 {
-	0x0500,
-	0x0600,
-	0x0601,
+	0x02AE,
 };
 
 XnUInt32 XnSensorIO::ms_supportedProductsCount = sizeof(XnSensorIO::ms_supportedProducts) / sizeof(XnSensorIO::ms_supportedProducts[0]);
@@ -158,10 +158,12 @@ XnStatus XnSensorIO::OpenDataEndPoints(XnSensorUsbInterface nInterface, const Xn
 			XN_ASSERT(FALSE);
 			XN_LOG_WARNING_RETURN(XN_STATUS_USB_INTERFACE_NOT_SUPPORTED, XN_MASK_DEVICE_IO, "Unknown interface type: %d", nInterface);
 		}
-
+// --avin mod--
+/*
 		xnLogVerbose(XN_MASK_DEVICE_IO, "Setting USB alternative interface to %d...", nAlternativeInterface);
 		nRetVal = xnUSBSetInterface(m_pSensorHandle->USBDevice, 0, nAlternativeInterface);
 		XN_IS_STATUS_OK(nRetVal);
+*/
 	}
 
 	xnLogVerbose(XN_MASK_DEVICE_IO, "Opening endpoints...");

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <WixLocalization Culture="en-us" xmlns="http://schemas.microsoft.com/wix/2006/localization" Codepage="1252">
   <String Id="LANG">1033</String>
-  <String Id="ProductName">PrimeSense Sensor</String>
+<!-- avin mod -->
+  <String Id="ProductName">PrimeSense Sensor KinectMod</String>
   <String Id="ProductNameSuffix">for Windows</String>
   <String Id="ProductName64Suffix">for Windows 64-bit</String>
   <String Id="DefaultInstallFolder">Sensor</String>
