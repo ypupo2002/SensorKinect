@@ -1,30 +1,24 @@
-/*****************************************************************************
-*                                                                            *
-*  PrimeSense Sensor 5.0 Alpha                                               *
-*  Copyright (C) 2010 PrimeSense Ltd.                                        *
-*                                                                            *
-*  This file is part of PrimeSense Common.                                   *
-*                                                                            *
-*  PrimeSense Sensor is free software: you can redistribute it and/or modify *
-*  it under the terms of the GNU Lesser General Public License as published  *
-*  by the Free Software Foundation, either version 3 of the License, or      *
-*  (at your option) any later version.                                       *
-*                                                                            *
-*  PrimeSense Sensor is distributed in the hope that it will be useful,      *
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of            *
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the              *
-*  GNU Lesser General Public License for more details.                       *
-*                                                                            *
-*  You should have received a copy of the GNU Lesser General Public License  *
-*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>. *
-*                                                                            *
-*****************************************************************************/
-
-
-
-
-
-
+/****************************************************************************
+*                                                                           *
+*  PrimeSense Sensor 5.x Alpha                                              *
+*  Copyright (C) 2011 PrimeSense Ltd.                                       *
+*                                                                           *
+*  This file is part of PrimeSense Sensor.                                  *
+*                                                                           *
+*  PrimeSense Sensor is free software: you can redistribute it and/or modify*
+*  it under the terms of the GNU Lesser General Public License as published *
+*  by the Free Software Foundation, either version 3 of the License, or     *
+*  (at your option) any later version.                                      *
+*                                                                           *
+*  PrimeSense Sensor is distributed in the hope that it will be useful,     *
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the             *
+*  GNU Lesser General Public License for more details.                      *
+*                                                                           *
+*  You should have received a copy of the GNU Lesser General Public License *
+*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>.*
+*                                                                           *
+****************************************************************************/
 //---------------------------------------------------------------------------
 // Includes
 //---------------------------------------------------------------------------
@@ -47,10 +41,10 @@ XnPixelStream::XnPixelStream(const XnChar* csType, const XnChar* csName, XnBool 
 	m_Cropping(XN_STREAM_PROPERTY_CROPPING, &m_CroppingData, sizeof(XnCropping), ReadCroppingFromFileCallback),
 	m_SupportedModesCount(XN_STREAM_PROPERTY_SUPPORT_MODES_COUNT, 0),
 	m_SupportedModes(XN_STREAM_PROPERTY_SUPPORT_MODES),
-	m_bAllowCustomResolutions(bAllowCustomResolutions)
+	m_bAllowCustomResolutions(bAllowCustomResolutions),
+	m_supportedModesData(30)
 {
 	xnOSMemSet(&m_CroppingData, 0, sizeof(XnCropping));
-	m_supportedModesData.Reserve(30);
 	m_SupportedModes.UpdateGetCallback(GetSupportedModesCallback, this);
 }
 
@@ -107,13 +101,27 @@ XnStatus XnPixelStream::AddSupportedModes(XnCmosPreset* aPresets, XnUInt32 nCoun
 	XN_IS_STATUS_OK(nRetVal);
 
 	// update our general property
-	XnCmosPreset* aAllPresets = m_supportedModesData.GetData();
 	XnUInt32 nAllPresetsCount = m_supportedModesData.GetSize();
 
 	nRetVal = m_SupportedModesCount.UnsafeUpdateValue(nAllPresetsCount);
 	XN_IS_STATUS_OK(nRetVal);
 
 	return (XN_STATUS_OK);
+}
+
+XnStatus XnPixelStream::ValidateSupportedMode(const XnCmosPreset& preset)
+{
+	for (XnUInt32 i = 0; i < m_supportedModesData.GetSize(); ++i)
+	{
+		if (preset.nFormat == m_supportedModesData[i].nFormat &&
+			preset.nResolution == m_supportedModesData[i].nResolution && 
+			preset.nFPS == m_supportedModesData[i].nFPS)
+		{
+			return (XN_STATUS_OK);
+		}
+	}
+
+	XN_LOG_WARNING_RETURN(XN_STATUS_DEVICE_BAD_PARAM, XN_MASK_DDK, "Mode is not supported (format: %d, resolution: %d, FPS: %d)!", preset.nFormat, preset.nResolution, preset.nFPS);
 }
 
 XnStatus XnPixelStream::GetSupportedModes(XnCmosPreset* aPresets, XnUInt32& nCount)
@@ -192,8 +200,6 @@ XnStatus XnPixelStream::SetCropping(const XnCropping* pCropping)
 
 XnStatus XnPixelStream::ValidateCropping(const XnCropping* pCropping)
 {
-	XnStatus nRetVal = XN_STATUS_OK;
-	
 	if (pCropping->bEnabled)
 	{
 		if (pCropping->nXOffset > GetXRes() ||
@@ -335,8 +341,6 @@ XnStatus XnPixelStream::Mirror(XnStreamData* pStreamOutput) const
 
 XnStatus XnPixelStream::CropImpl(XnStreamData* pStreamOutput, const XnCropping* pCropping)
 {
-	XnStatus nRetVal = XN_STATUS_OK;
-
 	XnUChar* pPixelData = (XnUChar*)pStreamOutput->pData;
 	XnUInt32 nCurDataSize = 0;
 
@@ -355,43 +359,43 @@ XnStatus XnPixelStream::CropImpl(XnStreamData* pStreamOutput, const XnCropping* 
 	return XN_STATUS_OK;
 }
 
-XnStatus XN_CALLBACK_TYPE XnPixelStream::ResolutionValueChangedCallback(const XnProperty* pSenser, void* pCookie)
+XnStatus XN_CALLBACK_TYPE XnPixelStream::ResolutionValueChangedCallback(const XnProperty* /*pSenser*/, void* pCookie)
 {
 	XnPixelStream* pStream = (XnPixelStream*)pCookie;
 	return pStream->OnResolutionChanged();
 }
 
-XnStatus XN_CALLBACK_TYPE XnPixelStream::OutputFormatValueChangedCallback(const XnProperty* pSenser, void* pCookie)
+XnStatus XN_CALLBACK_TYPE XnPixelStream::OutputFormatValueChangedCallback(const XnProperty* /*pSenser*/, void* pCookie)
 {
 	XnPixelStream* pStream = (XnPixelStream*)pCookie;
 	return pStream->OnOutputFormatChanged();
 }
 
-XnStatus XN_CALLBACK_TYPE XnPixelStream::FixCroppingCallback(const XnProperty* pSenser, void* pCookie)
+XnStatus XN_CALLBACK_TYPE XnPixelStream::FixCroppingCallback(const XnProperty* /*pSenser*/, void* pCookie)
 {
 	XnPixelStream* pStream = (XnPixelStream*)pCookie;
 	return pStream->FixCropping();
 }
 
-XnStatus XN_CALLBACK_TYPE XnPixelStream::SetResolutionCallback(XnActualIntProperty* pSenser, XnUInt64 nValue, void* pCookie)
+XnStatus XN_CALLBACK_TYPE XnPixelStream::SetResolutionCallback(XnActualIntProperty* /*pSenser*/, XnUInt64 nValue, void* pCookie)
 {
 	XnPixelStream* pStream = (XnPixelStream*)pCookie;
 	return pStream->SetResolution((XnResolutions)nValue);
 }
 
-XnStatus XN_CALLBACK_TYPE XnPixelStream::SetXResCallback(XnActualIntProperty* pSenser, XnUInt64 nValue, void* pCookie)
+XnStatus XN_CALLBACK_TYPE XnPixelStream::SetXResCallback(XnActualIntProperty* /*pSenser*/, XnUInt64 nValue, void* pCookie)
 {
 	XnPixelStream* pStream = (XnPixelStream*)pCookie;
 	return pStream->SetXRes((XnUInt32)nValue);
 }
 
-XnStatus XN_CALLBACK_TYPE XnPixelStream::SetYResCallback(XnActualIntProperty* pSenser, XnUInt64 nValue, void* pCookie)
+XnStatus XN_CALLBACK_TYPE XnPixelStream::SetYResCallback(XnActualIntProperty* /*pSenser*/, XnUInt64 nValue, void* pCookie)
 {
 	XnPixelStream* pStream = (XnPixelStream*)pCookie;
 	return pStream->SetYRes((XnUInt32)nValue);
 }
 
-XnStatus XN_CALLBACK_TYPE XnPixelStream::SetCroppingCallback(XnActualGeneralProperty* pSender, const XnGeneralBuffer& gbValue, void* pCookie)
+XnStatus XN_CALLBACK_TYPE XnPixelStream::SetCroppingCallback(XnActualGeneralProperty* /*pSender*/, const XnGeneralBuffer& gbValue, void* pCookie)
 {
 	XnPixelStream* pStream = (XnPixelStream*)pCookie;
 	if (gbValue.nDataSize != sizeof(XnCropping))
@@ -425,10 +429,10 @@ XnStatus XN_CALLBACK_TYPE XnPixelStream::ReadCroppingFromFileCallback(XnGeneralP
 		XN_STATUS_OK == xnOSReadIntFromINI(csINIFile, csCroppingSection, "Enabled", &bEnabled))
 	{
 		XnCropping Cropping;
-		Cropping.nXOffset = nOffsetX;
-		Cropping.nYOffset = nOffsetY;
-		Cropping.nXSize = nSizeX;
-		Cropping.nYSize = nSizeY;
+		Cropping.nXOffset = (XnUInt16)nOffsetX;
+		Cropping.nYOffset = (XnUInt16)nOffsetY;
+		Cropping.nXSize = (XnUInt16)nSizeX;
+		Cropping.nYSize = (XnUInt16)nSizeY;
 		Cropping.bEnabled = bEnabled;
 
 		// set value
@@ -439,7 +443,7 @@ XnStatus XN_CALLBACK_TYPE XnPixelStream::ReadCroppingFromFileCallback(XnGeneralP
 	return (XN_STATUS_OK);
 }
 
-XnStatus XN_CALLBACK_TYPE XnPixelStream::GetSupportedModesCallback(const XnGeneralProperty* pSender, const XnGeneralBuffer& gbValue, void* pCookie)
+XnStatus XN_CALLBACK_TYPE XnPixelStream::GetSupportedModesCallback(const XnGeneralProperty* /*pSender*/, const XnGeneralBuffer& gbValue, void* pCookie)
 {
 	XnPixelStream* pThis = (XnPixelStream*)pCookie;
 	if ((gbValue.nDataSize % sizeof(XnCmosPreset)) != 0)

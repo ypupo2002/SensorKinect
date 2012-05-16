@@ -1,29 +1,24 @@
-/*****************************************************************************
-*                                                                            *
-*  PrimeSense Sensor 5.0 Alpha                                               *
-*  Copyright (C) 2010 PrimeSense Ltd.                                        *
-*                                                                            *
-*  This file is part of PrimeSense Common.                                   *
-*                                                                            *
-*  PrimeSense Sensor is free software: you can redistribute it and/or modify *
-*  it under the terms of the GNU Lesser General Public License as published  *
-*  by the Free Software Foundation, either version 3 of the License, or      *
-*  (at your option) any later version.                                       *
-*                                                                            *
-*  PrimeSense Sensor is distributed in the hope that it will be useful,      *
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of            *
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the              *
-*  GNU Lesser General Public License for more details.                       *
-*                                                                            *
-*  You should have received a copy of the GNU Lesser General Public License  *
-*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>. *
-*                                                                            *
-*****************************************************************************/
-
-
-
-
-
+/****************************************************************************
+*                                                                           *
+*  PrimeSense Sensor 5.x Alpha                                              *
+*  Copyright (C) 2011 PrimeSense Ltd.                                       *
+*                                                                           *
+*  This file is part of PrimeSense Sensor.                                  *
+*                                                                           *
+*  PrimeSense Sensor is free software: you can redistribute it and/or modify*
+*  it under the terms of the GNU Lesser General Public License as published *
+*  by the Free Software Foundation, either version 3 of the License, or     *
+*  (at your option) any later version.                                      *
+*                                                                           *
+*  PrimeSense Sensor is distributed in the hope that it will be useful,     *
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the             *
+*  GNU Lesser General Public License for more details.                      *
+*                                                                           *
+*  You should have received a copy of the GNU Lesser General Public License *
+*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>.*
+*                                                                           *
+****************************************************************************/
 #ifndef __XN_SENSOR_H__
 #define __XN_SENSOR_H__
 
@@ -66,8 +61,8 @@ public:
 	virtual XnStatus OpenAllStreams();
 	virtual XnStatus ReadStream(XnStreamData* pStreamOutput);
 	virtual XnStatus Read(XnStreamDataSet* pStreamOutputSet);
-	virtual XnStatus WriteStream(const XnStreamData* pStreamOutput);
-	virtual XnStatus Write(const XnStreamDataSet* pStreamOutputSet);
+	virtual XnStatus WriteStream(XnStreamData* pStreamOutput);
+	virtual XnStatus Write(XnStreamDataSet* pStreamOutputSet);
 	virtual XnStatus Seek(XnUInt64 nTimestamp);
 	virtual XnStatus SeekFrame(XnUInt32 nFrameID);
 	virtual XnStatus LoadConfigFromFile(const XnChar* csINIFilePath, const XnChar* csSectionName);
@@ -97,6 +92,7 @@ public:
 	XnStatus ConfigureModuleFromGlobalFile(const XnChar* strModule, const XnChar* strSection = NULL);
 
 	const XnChar* GetUSBPath() { return m_USBPath.GetValue(); }
+	XnBool AreOtherUsersAllowed() { return (m_AllowOtherUsers.GetValue() == TRUE); }
 
 
 protected:
@@ -110,7 +106,6 @@ protected:
 
 private:
 	XnStatus InitSensor(const XnDeviceConfig* pDeviceConfig);
-	XnStatus ParseConnectionString(const XnChar* csConnectionString, XnChar* csSensorID, XnUInt32* pnBoardID);
 	XnStatus ValidateSensorID(XnChar* csSensorID);
 	XnStatus ReadFromStreamImpl(XnDeviceStream* pStream, XnStreamData* pStreamOutput);
 	XnStatus SetMirrorForModule(XnDeviceModule* pModule, XnUInt64 nValue);
@@ -119,6 +114,8 @@ private:
 	XnStatus InitReading();
 	XnBool HasSynchedFrameArrived(const XnChar* strDepthStream, const XnChar* strImageStream);
 	XnStatus OnFrameSyncPropertyChanged();
+
+	static XnStatus XN_CALLBACK_TYPE GetInstanceCallback(const XnGeneralProperty* pSender, const XnGeneralBuffer& gbValue, void* pCookie);
 
 
 	//---------------------------------------------------------------------------
@@ -136,6 +133,7 @@ private:
 	// Setters
 	//---------------------------------------------------------------------------
 	XnStatus SetInterface(XnSensorUsbInterface nInterface);
+	XnStatus SetAllowOtherUsers(XnBool bAllowOtherUsers);
 	XnStatus SetNumberOfBuffers(XnUInt32 nCount);
 	XnStatus SetReadEndpoint1(XnBool bRead);
 	XnStatus SetReadEndpoint2(XnBool bRead);
@@ -151,6 +149,7 @@ private:
 	// Callbacks
 	//---------------------------------------------------------------------------
 	static XnStatus XN_CALLBACK_TYPE SetInterfaceCallback(XnActualIntProperty* pSender, XnUInt64 nValue, void* pCookie);
+	static XnStatus XN_CALLBACK_TYPE SetAllowOtherUsersCallback(XnActualIntProperty* pSender, XnUInt64 nValue, void* pCookie);
 	static XnStatus XN_CALLBACK_TYPE SetNumberOfBuffersCallback(XnActualIntProperty* pSender, XnUInt64 nValue, void* pCookie);
 	static XnStatus XN_CALLBACK_TYPE SetReadEndpoint1Callback(XnActualIntProperty* pSender, XnUInt64 nValue, void* pCookie);
 	static XnStatus XN_CALLBACK_TYPE SetReadEndpoint2Callback(XnActualIntProperty* pSender, XnUInt64 nValue, void* pCookie);
@@ -169,6 +168,7 @@ private:
 	static XnStatus XN_CALLBACK_TYPE GetCmosBlankingUnitsCallback(const XnGeneralProperty* pSender, const XnGeneralBuffer& gbValue, void* pCookie);
 	static XnStatus XN_CALLBACK_TYPE GetCmosBlankingTimeCallback(const XnGeneralProperty* pSender, const XnGeneralBuffer& gbValue, void* pCookie);
 	static XnStatus XN_CALLBACK_TYPE GetFirmwareModeCallback(const XnIntProperty* pSender, XnUInt64* pnValue, void* pCookie);
+	static XnStatus XN_CALLBACK_TYPE GetAudioSupportedCallback(const XnIntProperty* pSender, XnUInt64* pnValue, void* pCookie);
 
 
 	//---------------------------------------------------------------------------
@@ -192,12 +192,13 @@ private:
 	XnVersions m_VersionData;
 	XnActualGeneralProperty m_Version;
 	XnGeneralProperty m_FixedParam;
-	XnSensor* m_pThis;
-	XnActualGeneralProperty m_InstancePointer;
+	XnGeneralProperty m_InstancePointer;
 	XnActualStringProperty m_ID;
 	XnActualStringProperty m_USBPath;
 	XnActualStringProperty m_DeviceName;
 	XnActualStringProperty m_VendorSpecificData;
+	XnActualIntProperty m_AllowOtherUsers;
+	XnIntProperty m_AudioSupported;
 
 	XnSensorFirmware m_Firmware;
 	XnDevicePrivateData m_DevicePrivateData;
@@ -209,7 +210,7 @@ private:
 	XnSensorObjects m_Objects;
 
 
-	XnDump m_FrameSyncDump;
+	XnDumpFile* m_FrameSyncDump;
 	XnBool m_bInitialized;
 
 	XnIntPropertySynchronizer m_PropSynchronizer;

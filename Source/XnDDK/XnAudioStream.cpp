@@ -1,30 +1,24 @@
-/*****************************************************************************
-*                                                                            *
-*  PrimeSense Sensor 5.0 Alpha                                               *
-*  Copyright (C) 2010 PrimeSense Ltd.                                        *
-*                                                                            *
-*  This file is part of PrimeSense Common.                                   *
-*                                                                            *
-*  PrimeSense Sensor is free software: you can redistribute it and/or modify *
-*  it under the terms of the GNU Lesser General Public License as published  *
-*  by the Free Software Foundation, either version 3 of the License, or      *
-*  (at your option) any later version.                                       *
-*                                                                            *
-*  PrimeSense Sensor is distributed in the hope that it will be useful,      *
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of            *
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the              *
-*  GNU Lesser General Public License for more details.                       *
-*                                                                            *
-*  You should have received a copy of the GNU Lesser General Public License  *
-*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>. *
-*                                                                            *
-*****************************************************************************/
-
-
-
-
-
-
+/****************************************************************************
+*                                                                           *
+*  PrimeSense Sensor 5.x Alpha                                              *
+*  Copyright (C) 2011 PrimeSense Ltd.                                       *
+*                                                                           *
+*  This file is part of PrimeSense Sensor.                                  *
+*                                                                           *
+*  PrimeSense Sensor is free software: you can redistribute it and/or modify*
+*  it under the terms of the GNU Lesser General Public License as published *
+*  by the Free Software Foundation, either version 3 of the License, or     *
+*  (at your option) any later version.                                      *
+*                                                                           *
+*  PrimeSense Sensor is distributed in the hope that it will be useful,     *
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the             *
+*  GNU Lesser General Public License for more details.                      *
+*                                                                           *
+*  You should have received a copy of the GNU Lesser General Public License *
+*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>.*
+*                                                                           *
+****************************************************************************/
 //---------------------------------------------------------------------------
 // Includes
 //---------------------------------------------------------------------------
@@ -89,8 +83,6 @@ XnStatus XnAudioStream::SetNumberOfChannels(XnUInt32 nNumberOfChannels)
 
 XnStatus XnAudioStream::CalcRequiredSize(XnUInt32* pnRequiredSize) const
 {
-	XnStatus nRetVal = XN_STATUS_OK;
-	
 	XnUInt32 nSampleSize = 2 * m_nMaxNumberOfChannels; // 16-bit per channel (2 bytes)
 	XnUInt32 nSamples = (XnUInt32)(GetSampleRate() * XN_AUDIO_STREAM_BUFFER_SIZE_IN_SECONDS);
 
@@ -99,13 +91,13 @@ XnStatus XnAudioStream::CalcRequiredSize(XnUInt32* pnRequiredSize) const
 	return (XN_STATUS_OK);
 }
 
-XnStatus XnAudioStream::SetSampleRateCallback(XnActualIntProperty* pSender, XnUInt64 nValue, void* pCookie)
+XnStatus XnAudioStream::SetSampleRateCallback(XnActualIntProperty* /*pSender*/, XnUInt64 nValue, void* pCookie)
 {
 	XnAudioStream* pStream = (XnAudioStream*)pCookie;
 	return pStream->SetSampleRate((XnSampleRate)nValue);
 }
 
-XnStatus XnAudioStream::SetNumberOfChannelsCallback(XnActualIntProperty* pSender, XnUInt64 nValue, void* pCookie)
+XnStatus XnAudioStream::SetNumberOfChannelsCallback(XnActualIntProperty* /*pSender*/, XnUInt64 nValue, void* pCookie)
 {
 	XnAudioStream* pStream = (XnAudioStream*)pCookie;
 	return pStream->SetNumberOfChannels((XnUInt32)nValue);

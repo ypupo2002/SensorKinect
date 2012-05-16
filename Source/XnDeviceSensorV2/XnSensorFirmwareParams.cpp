@@ -1,30 +1,24 @@
-/*****************************************************************************
-*                                                                            *
-*  PrimeSense Sensor 5.0 Alpha                                               *
-*  Copyright (C) 2010 PrimeSense Ltd.                                        *
-*                                                                            *
-*  This file is part of PrimeSense Common.                                   *
-*                                                                            *
-*  PrimeSense Sensor is free software: you can redistribute it and/or modify *
-*  it under the terms of the GNU Lesser General Public License as published  *
-*  by the Free Software Foundation, either version 3 of the License, or      *
-*  (at your option) any later version.                                       *
-*                                                                            *
-*  PrimeSense Sensor is distributed in the hope that it will be useful,      *
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of            *
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the              *
-*  GNU Lesser General Public License for more details.                       *
-*                                                                            *
-*  You should have received a copy of the GNU Lesser General Public License  *
-*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>. *
-*                                                                            *
-*****************************************************************************/
-
-
-
-
-
-
+/****************************************************************************
+*                                                                           *
+*  PrimeSense Sensor 5.x Alpha                                              *
+*  Copyright (C) 2011 PrimeSense Ltd.                                       *
+*                                                                           *
+*  This file is part of PrimeSense Sensor.                                  *
+*                                                                           *
+*  PrimeSense Sensor is free software: you can redistribute it and/or modify*
+*  it under the terms of the GNU Lesser General Public License as published *
+*  by the Free Software Foundation, either version 3 of the License, or     *
+*  (at your option) any later version.                                      *
+*                                                                           *
+*  PrimeSense Sensor is distributed in the hope that it will be useful,     *
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the             *
+*  GNU Lesser General Public License for more details.                      *
+*                                                                           *
+*  You should have received a copy of the GNU Lesser General Public License *
+*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>.*
+*                                                                           *
+****************************************************************************/
 //---------------------------------------------------------------------------
 // Includes
 //---------------------------------------------------------------------------
@@ -295,8 +289,6 @@ XnStatus XnSensorFirmwareParams::UpdateAllProperties()
 
 XnStatus XnSensorFirmwareParams::StartTransaction()
 {
-	XnStatus nRetVal = XN_STATUS_OK;
-	
 	if (m_bInTransaction)
 	{
 		return XN_STATUS_ERROR;
@@ -426,8 +418,6 @@ XnStatus XnSensorFirmwareParams::CommitTransactionAsBatch()
 
 XnStatus XnSensorFirmwareParams::RollbackTransaction()
 {
-	XnStatus nRetVal = XN_STATUS_OK;
-
 	if (!m_bInTransaction)
 	{
 		return XN_STATUS_ERROR;
@@ -666,13 +656,13 @@ XnStatus XN_CALLBACK_TYPE XnSensorFirmwareParams::SetFirmwareAudioParamCallback(
 	return pThis->SetFirmwareAudioParam(pSender, nValue);
 }
 
-XnStatus XN_CALLBACK_TYPE XnSensorFirmwareParams::SetImageResolutionCallback(XnActualIntProperty* pSender, XnUInt64 nValue, void* pCookie)
+XnStatus XN_CALLBACK_TYPE XnSensorFirmwareParams::SetImageResolutionCallback(XnActualIntProperty* /*pSender*/, XnUInt64 nValue, void* pCookie)
 {
 	XnSensorFirmwareParams* pThis = (XnSensorFirmwareParams*)pCookie;
 	return pThis->SetImageResolution(nValue);
 }
 
-XnStatus XN_CALLBACK_TYPE XnSensorFirmwareParams::SetImageFormatCallback(XnActualIntProperty* pSender, XnUInt64 nValue, void* pCookie)
+XnStatus XN_CALLBACK_TYPE XnSensorFirmwareParams::SetImageFormatCallback(XnActualIntProperty* /*pSender*/, XnUInt64 nValue, void* pCookie)
 {
 	XnSensorFirmwareParams* pThis = (XnSensorFirmwareParams*)pCookie;
 	return pThis->SetImageFormat(nValue);
@@ -684,7 +674,7 @@ XnStatus XN_CALLBACK_TYPE XnSensorFirmwareParams::SetStreamModeCallback(XnActual
 	return pThis->SetStreamMode(pSender, nValue);
 }
 
-XnStatus XN_CALLBACK_TYPE XnSensorFirmwareParams::ReferenceResolutionPropertyValueChanged(const XnProperty* pSender, void* pCookie)
+XnStatus XN_CALLBACK_TYPE XnSensorFirmwareParams::ReferenceResolutionPropertyValueChanged(const XnProperty* /*pSender*/, void* pCookie)
 {
 	XnSensorFirmwareParams* pThis = (XnSensorFirmwareParams*)pCookie;
 	return pThis->RecalculateReferenceResolution();

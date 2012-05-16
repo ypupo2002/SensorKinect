@@ -1,30 +1,24 @@
-/*****************************************************************************
-*                                                                            *
-*  PrimeSense Sensor 5.0 Alpha                                               *
-*  Copyright (C) 2010 PrimeSense Ltd.                                        *
-*                                                                            *
-*  This file is part of PrimeSense Common.                                   *
-*                                                                            *
-*  PrimeSense Sensor is free software: you can redistribute it and/or modify *
-*  it under the terms of the GNU Lesser General Public License as published  *
-*  by the Free Software Foundation, either version 3 of the License, or      *
-*  (at your option) any later version.                                       *
-*                                                                            *
-*  PrimeSense Sensor is distributed in the hope that it will be useful,      *
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of            *
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the              *
-*  GNU Lesser General Public License for more details.                       *
-*                                                                            *
-*  You should have received a copy of the GNU Lesser General Public License  *
-*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>. *
-*                                                                            *
-*****************************************************************************/
-
-
-
-
-
-
+/****************************************************************************
+*                                                                           *
+*  PrimeSense Sensor 5.x Alpha                                              *
+*  Copyright (C) 2011 PrimeSense Ltd.                                       *
+*                                                                           *
+*  This file is part of PrimeSense Sensor.                                  *
+*                                                                           *
+*  PrimeSense Sensor is free software: you can redistribute it and/or modify*
+*  it under the terms of the GNU Lesser General Public License as published *
+*  by the Free Software Foundation, either version 3 of the License, or     *
+*  (at your option) any later version.                                      *
+*                                                                           *
+*  PrimeSense Sensor is distributed in the hope that it will be useful,     *
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the             *
+*  GNU Lesser General Public License for more details.                      *
+*                                                                           *
+*  You should have received a copy of the GNU Lesser General Public License *
+*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>.*
+*                                                                           *
+****************************************************************************/
 //---------------------------------------------------------------------------
 // Includes
 //---------------------------------------------------------------------------
@@ -92,7 +86,7 @@ XnStatus XnStreamUncompressYUVImagePS(const XnUInt8* pInput, const XnUInt32 nInp
 			{
 				// take high_element only
 				// diffs are between -6 and 6 (0x0 to 0xc)
-				nLastFullValue[nChannel] += (cInput >> 4) - 6;
+				nLastFullValue[nChannel] += XnInt8((cInput >> 4) - 6);
 			}
 			else if (cInput < 0xe0) // 0xd is dummy
 			{
@@ -108,7 +102,7 @@ XnStatus XnStreamUncompressYUVImagePS(const XnUInt8* pInput, const XnUInt32 nInp
 					break;
 
 				nTempValue += (*pInput >> 4);
-				nLastFullValue[nChannel] = nTempValue;
+				nLastFullValue[nChannel] = (XnUInt8)nTempValue;
 			}
 		}
 		else
@@ -121,7 +115,7 @@ XnStatus XnStreamUncompressYUVImagePS(const XnUInt8* pInput, const XnUInt32 nInp
 			if (cInput < 0xd) // 0x0 to 0xc are diffs
 			{
 				// diffs are between -6 and 6 (0x0 to 0xc)
-				nLastFullValue[nChannel] += cInput - 6;
+				nLastFullValue[nChannel] += (XnInt8)(cInput - 6);
 			}
 			else if (cInput < 0xe) // 0xd is dummy
 			{
@@ -173,13 +167,13 @@ XnStatus XnStreamUncompressYUVImagePS(const XnUInt8* pInput, const XnUInt32 nInp
 
 	if (bLastPart == TRUE)
 	{
-		*pnOutputSize = (pOutput - pOrigOutput) * sizeof(XnUInt8);
-		*pnActualRead += (pInput - pInputOrig) * sizeof(XnUInt8);
+		*pnOutputSize = (XnUInt32)(pOutput - pOrigOutput) * sizeof(XnUInt8);
+		*pnActualRead += (XnUInt32)(pInput - pInputOrig) * sizeof(XnUInt8);
 	}
 	else if ((pOutputLastPossibleStop != pOrigOutput) && (pInputLastPossibleStop != pInputOrig))
 	{
-		*pnOutputSize = (pOutputLastPossibleStop - pOrigOutput) * sizeof(XnUInt8);
-		*pnActualRead += (pInputLastPossibleStop - pInputOrig) * sizeof(XnUInt8);
+		*pnOutputSize = (XnUInt32)(pOutputLastPossibleStop - pOrigOutput) * sizeof(XnUInt8);
+		*pnActualRead += (XnUInt32)(pInputLastPossibleStop - pInputOrig) * sizeof(XnUInt8);
 	}
 
 	// All is good...
@@ -229,7 +223,7 @@ XnStatus XnStreamUncompressImageNew(const XnUInt8* pInput, const XnUInt32 nInput
 			{
 				// take high_element only
 				// diffs are between -6 and 6 (0x0 to 0xc)
-				nLastFullValue[nChannel] += (cInput >> 4) - 6;
+				nLastFullValue[nChannel] += (XnInt8)((cInput >> 4) - 6);
 			}
 			else if (cInput < 0xe0) // 0xd is dummy
 			{
@@ -245,7 +239,7 @@ XnStatus XnStreamUncompressImageNew(const XnUInt8* pInput, const XnUInt32 nInput
 					break;
 
 				nTempValue += (*pInput >> 4);
-				nLastFullValue[nChannel] = nTempValue;
+				nLastFullValue[nChannel] = (XnUInt8)nTempValue;
 			}
 		}
 		else
@@ -258,7 +252,7 @@ XnStatus XnStreamUncompressImageNew(const XnUInt8* pInput, const XnUInt32 nInput
 			if (cInput < 0xd) // 0x0 to 0xc are diffs
 			{
 				// diffs are between -6 and 6 (0x0 to 0xc)
-				nLastFullValue[nChannel] += cInput - 6;
+				nLastFullValue[nChannel] += (XnInt8)(cInput - 6);
 			}
 			else if (cInput < 0xe) // 0xd is dummy
 			{
@@ -306,13 +300,13 @@ XnStatus XnStreamUncompressImageNew(const XnUInt8* pInput, const XnUInt32 nInput
 
 	if (bLastPart == TRUE)
 	{
-		*pnOutputSize = (pOutput - pOrigOutput) * sizeof(XnUInt8);
-		*pnActualRead += (pInput - pInputOrig) * sizeof(XnUInt8);
+		*pnOutputSize = (XnUInt32)(pOutput - pOrigOutput) * sizeof(XnUInt8);
+		*pnActualRead += (XnUInt32)(pInput - pInputOrig) * sizeof(XnUInt8);
 	}
 	else if ((pOutputLastPossibleStop != pOrigOutput) && (pInputLastPossibleStop != pInputOrig))
 	{
-		*pnOutputSize = (pOutputLastPossibleStop - pOrigOutput) * sizeof(XnUInt8);
-		*pnActualRead += (pInputLastPossibleStop - pInputOrig) * sizeof(XnUInt8);
+		*pnOutputSize = (XnUInt32)(pOutputLastPossibleStop - pOrigOutput) * sizeof(XnUInt8);
+		*pnActualRead += (XnUInt32)(pInputLastPossibleStop - pInputOrig) * sizeof(XnUInt8);
 	}
 
 	// All is good...

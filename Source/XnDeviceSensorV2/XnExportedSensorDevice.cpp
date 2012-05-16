@@ -1,30 +1,24 @@
-/*****************************************************************************
-*                                                                            *
-*  PrimeSense Sensor 5.0 Alpha                                               *
-*  Copyright (C) 2010 PrimeSense Ltd.                                        *
-*                                                                            *
-*  This file is part of PrimeSense Common.                                   *
-*                                                                            *
-*  PrimeSense Sensor is free software: you can redistribute it and/or modify *
-*  it under the terms of the GNU Lesser General Public License as published  *
-*  by the Free Software Foundation, either version 3 of the License, or      *
-*  (at your option) any later version.                                       *
-*                                                                            *
-*  PrimeSense Sensor is distributed in the hope that it will be useful,      *
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of            *
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the              *
-*  GNU Lesser General Public License for more details.                       *
-*                                                                            *
-*  You should have received a copy of the GNU Lesser General Public License  *
-*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>. *
-*                                                                            *
-*****************************************************************************/
-
-
-
-
-
-
+/****************************************************************************
+*                                                                           *
+*  PrimeSense Sensor 5.x Alpha                                              *
+*  Copyright (C) 2011 PrimeSense Ltd.                                       *
+*                                                                           *
+*  This file is part of PrimeSense Sensor.                                  *
+*                                                                           *
+*  PrimeSense Sensor is free software: you can redistribute it and/or modify*
+*  it under the terms of the GNU Lesser General Public License as published *
+*  by the Free Software Foundation, either version 3 of the License, or     *
+*  (at your option) any later version.                                      *
+*                                                                           *
+*  PrimeSense Sensor is distributed in the hope that it will be useful,     *
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the             *
+*  GNU Lesser General Public License for more details.                      *
+*                                                                           *
+*  You should have received a copy of the GNU Lesser General Public License *
+*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>.*
+*                                                                           *
+****************************************************************************/
 //---------------------------------------------------------------------------
 // Includes
 //---------------------------------------------------------------------------
@@ -34,6 +28,17 @@
 #include <XnOpenNI.h>
 #include <XnCommon/XnCommon.h>
 #include "XnSensorServer.h"
+
+//---------------------------------------------------------------------------
+// Defines
+//---------------------------------------------------------------------------
+// On weak platforms (like Arm), the default is not to use multi-process. 
+#if (XN_PLATFORM == XN_PLATFORM_LINUX_ARM || XN_PLATFORM == XN_PLATFORM_ANDROID_ARM)
+	#define XN_SENSOR_DEFAULT_MULTI_PROCESS	(FALSE)
+#else
+	#define XN_SENSOR_DEFAULT_MULTI_PROCESS	(TRUE)
+#endif
+
 
 //---------------------------------------------------------------------------
 // XnExportedSensorDevice class
@@ -58,7 +63,7 @@ void XnExportedSensorDevice::GetDescription(XnProductionNodeDescription* pDescri
 	pDescription->Type = XN_NODE_TYPE_DEVICE;
 }
 
-XnStatus XnExportedSensorDevice::EnumerateProductionTrees(xn::Context& context, xn::NodeInfoList& TreesList, xn::EnumerationErrors* pErrors)
+XnStatus XnExportedSensorDevice::EnumerateProductionTrees(xn::Context& context, xn::NodeInfoList& TreesList, xn::EnumerationErrors* /*pErrors*/)
 {
 	XnStatus nRetVal = XN_STATUS_OK;
 
@@ -108,7 +113,7 @@ XnStatus XnExportedSensorDevice::EnumerateProductionTrees(xn::Context& context, 
 XnStatus XnExportedSensorDevice::Create(xn::Context& context, 
 										const XnChar* strInstanceName, 
 										const XnChar* strCreationInfo, 
-										xn::NodeInfoList* pNeededTrees, 
+										xn::NodeInfoList* /*pNeededTrees*/, 
 										const XnChar* strConfigurationDir, 
 										xn::ModuleProductionNode** ppInstance)
 {
@@ -118,10 +123,11 @@ XnStatus XnExportedSensorDevice::Create(xn::Context& context,
 	nRetVal = XnSensor::ResolveGlobalConfigFileName(strGlobalConfigFile, XN_FILE_MAX_PATH, strConfigurationDir);
 	XN_IS_STATUS_OK(nRetVal);
 
+	// multi-process is not supported on Mac
 #if (XN_PLATFORM == XN_PLATFORM_MACOSX)
 	XnBool bEnableMultiProcess = FALSE;
 #else
-	XnBool bEnableMultiProcess = TRUE;
+	XnBool bEnableMultiProcess = XN_SENSOR_DEFAULT_MULTI_PROCESS;
 	XnUInt32 nValue;
 	if (XN_STATUS_OK == xnOSReadIntFromINI(strGlobalConfigFile, XN_SENSOR_SERVER_CONFIG_FILE_SECTION, XN_MODULE_PROPERTY_ENABLE_MULTI_PROCESS, &nValue))
 	{

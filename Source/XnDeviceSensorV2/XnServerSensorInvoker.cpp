@@ -1,25 +1,24 @@
-/*****************************************************************************
-*                                                                            *
-*  PrimeSense Sensor 5.0 Alpha                                               *
-*  Copyright (C) 2010 PrimeSense Ltd.                                        *
-*                                                                            *
-*  This file is part of PrimeSense Common.                                   *
-*                                                                            *
-*  PrimeSense Sensor is free software: you can redistribute it and/or modify *
-*  it under the terms of the GNU Lesser General Public License as published  *
-*  by the Free Software Foundation, either version 3 of the License, or      *
-*  (at your option) any later version.                                       *
-*                                                                            *
-*  PrimeSense Sensor is distributed in the hope that it will be useful,      *
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of            *
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the              *
-*  GNU Lesser General Public License for more details.                       *
-*                                                                            *
-*  You should have received a copy of the GNU Lesser General Public License  *
-*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>. *
-*                                                                            *
-*****************************************************************************/
-
+/****************************************************************************
+*                                                                           *
+*  PrimeSense Sensor 5.x Alpha                                              *
+*  Copyright (C) 2011 PrimeSense Ltd.                                       *
+*                                                                           *
+*  This file is part of PrimeSense Sensor.                                  *
+*                                                                           *
+*  PrimeSense Sensor is free software: you can redistribute it and/or modify*
+*  it under the terms of the GNU Lesser General Public License as published *
+*  by the Free Software Foundation, either version 3 of the License, or     *
+*  (at your option) any later version.                                      *
+*                                                                           *
+*  PrimeSense Sensor is distributed in the hope that it will be useful,     *
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the             *
+*  GNU Lesser General Public License for more details.                      *
+*                                                                           *
+*  You should have received a copy of the GNU Lesser General Public License *
+*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>.*
+*                                                                           *
+****************************************************************************/
 //---------------------------------------------------------------------------
 // Includes
 //---------------------------------------------------------------------------
@@ -438,8 +437,6 @@ XnStatus XnServerSensorInvoker::ReadStream(XnStreamData* pStreamData, XnUInt32* 
 
 XnStatus XnServerSensorInvoker::OnPropertyChanged(const XnProperty* pProp)
 {
-	XnStatus nRetVal = XN_STATUS_OK;
-	
 	// some special handling
 	if (strcmp(pProp->GetName(), XN_STREAM_PROPERTY_STATE) == 0)
 	{
@@ -490,8 +487,6 @@ XnStatus XnServerSensorInvoker::OnStreamAdded(const XnChar* StreamName)
 	XnProperty* pProp = NULL;
 	nRetVal = pStreamProps->Get(XN_STREAM_PROPERTY_TYPE, pProp);
 	XN_IS_STATUS_OK(nRetVal);
-
-	XnActualStringProperty* pTypeProp = (XnActualStringProperty*)pProp;
 
 	// create stream data
 	SensorInvokerStream serverStream;
@@ -633,13 +628,13 @@ XnStatus XN_CALLBACK_TYPE XnServerSensorInvoker::PropertyChangedCallback(const X
 	return XN_STATUS_OK;
 }
 
-void XN_CALLBACK_TYPE XnServerSensorInvoker::StreamCollectionChangedCallback(XnDeviceHandle DeviceHandle, const XnChar* StreamName, XnStreamsChangeEventType EventType, void* pCookie)
+void XN_CALLBACK_TYPE XnServerSensorInvoker::StreamCollectionChangedCallback(XnDeviceHandle /*DeviceHandle*/, const XnChar* StreamName, XnStreamsChangeEventType EventType, void* pCookie)
 {
 	XnServerSensorInvoker* pThis = (XnServerSensorInvoker*)pCookie;
 	pThis->OnStreamCollectionChanged(StreamName, EventType);
 }
 
-void XN_CALLBACK_TYPE XnServerSensorInvoker::NewStreamDataCallback(XnDeviceHandle DeviceHandle, const XnChar* StreamName, void* pCookie)
+void XN_CALLBACK_TYPE XnServerSensorInvoker::NewStreamDataCallback(XnDeviceHandle /*DeviceHandle*/, const XnChar* StreamName, void* pCookie)
 {
 	XnServerSensorInvoker* pThis = (XnServerSensorInvoker*)pCookie;
 	pThis->OnNewStreamData(StreamName);

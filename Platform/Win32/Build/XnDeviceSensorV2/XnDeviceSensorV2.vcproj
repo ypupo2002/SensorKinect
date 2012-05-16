@@ -53,8 +53,9 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
-				WarningLevel="3"
+				WarningLevel="4"
 				DebugInformationFormat="4"
+				DisableSpecificWarnings="4251;4275;1744"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -144,6 +145,7 @@
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="4"
+				DisableSpecificWarnings="4251;4275;1744"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -221,7 +223,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalOptions="/fp:fast /Qprec-div- /Qprec-sqrt-"
+				AdditionalOptions="/fp:fast /Qprec-div- /Qprec-sqrt- /MP"
 				Optimization="2"
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="true"
@@ -237,6 +239,7 @@
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
+				DisableSpecificWarnings="4251;4275;1744"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -312,7 +315,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalOptions="/fp:fast /Qprec-div- /Qprec-sqrt-"
+				AdditionalOptions="/fp:fast /Qprec-div- /Qprec-sqrt- /MP"
 				Optimization="2"
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="true"
@@ -328,6 +331,7 @@
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
+				DisableSpecificWarnings="4251;4275;1744"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"

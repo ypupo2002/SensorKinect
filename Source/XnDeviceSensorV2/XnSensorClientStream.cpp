@@ -1,30 +1,24 @@
-/*****************************************************************************
-*                                                                            *
-*  PrimeSense Sensor 5.0 Alpha                                               *
-*  Copyright (C) 2010 PrimeSense Ltd.                                        *
-*                                                                            *
-*  This file is part of PrimeSense Common.                                   *
-*                                                                            *
-*  PrimeSense Sensor is free software: you can redistribute it and/or modify *
-*  it under the terms of the GNU Lesser General Public License as published  *
-*  by the Free Software Foundation, either version 3 of the License, or      *
-*  (at your option) any later version.                                       *
-*                                                                            *
-*  PrimeSense Sensor is distributed in the hope that it will be useful,      *
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of            *
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the              *
-*  GNU Lesser General Public License for more details.                       *
-*                                                                            *
-*  You should have received a copy of the GNU Lesser General Public License  *
-*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>. *
-*                                                                            *
-*****************************************************************************/
-
-
-
-
-
-
+/****************************************************************************
+*                                                                           *
+*  PrimeSense Sensor 5.x Alpha                                              *
+*  Copyright (C) 2011 PrimeSense Ltd.                                       *
+*                                                                           *
+*  This file is part of PrimeSense Sensor.                                  *
+*                                                                           *
+*  PrimeSense Sensor is free software: you can redistribute it and/or modify*
+*  it under the terms of the GNU Lesser General Public License as published *
+*  by the Free Software Foundation, either version 3 of the License, or     *
+*  (at your option) any later version.                                      *
+*                                                                           *
+*  PrimeSense Sensor is distributed in the hope that it will be useful,     *
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the             *
+*  GNU Lesser General Public License for more details.                      *
+*                                                                           *
+*  You should have received a copy of the GNU Lesser General Public License *
+*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>.*
+*                                                                           *
+****************************************************************************/
 //---------------------------------------------------------------------------
 // Includes
 //---------------------------------------------------------------------------
@@ -62,7 +56,7 @@ XnStatus XnSensorClientStream::OpenSharedMemory()
 	nRetVal = GetProperty(XN_STREAM_PROPERTY_SHARED_BUFFER_NAME, strSharedMemoryName);
 	XN_IS_STATUS_OK(nRetVal);
 
-	nRetVal = xnOSOpenSharedMemory(strSharedMemoryName, XN_OS_FILE_READ, &m_hSharedMemory);
+	nRetVal = xnOSOpenSharedMemoryEx(strSharedMemoryName, XN_OS_FILE_READ, m_pClient->IsServerFromOtherUserAllowed(), &m_hSharedMemory);
 	XN_IS_STATUS_OK(nRetVal);
 
 	nRetVal = xnOSSharedMemoryGetAddress(m_hSharedMemory, (void**)&m_pSharedMemory);
@@ -75,7 +69,7 @@ XnStatus XnSensorClientStream::Open()
 {
 	XnStatus nRetVal = XN_STATUS_OK;
 	
-	nRetVal = m_pClient->m_pOutgoingPacker->WriteCustomData(XN_SENSOR_SERVER_MESSAGE_OPEN_STREAM, GetName(), strlen(GetName()) + 1);
+	nRetVal = m_pClient->m_pOutgoingPacker->WriteCustomData(XN_SENSOR_SERVER_MESSAGE_OPEN_STREAM, GetName(), (XnUInt32)strlen(GetName()) + 1);
 	XN_IS_STATUS_OK(nRetVal);
 
 	// wait for reply
@@ -93,7 +87,7 @@ XnStatus XnSensorClientStream::Close()
 	XnStatus nRetVal = XN_STATUS_OK;
 
 	// read data from server
-	nRetVal = m_pClient->m_pOutgoingPacker->WriteCustomData(XN_SENSOR_SERVER_MESSAGE_CLOSE_STREAM, GetName(), strlen(GetName()) + 1);
+	nRetVal = m_pClient->m_pOutgoingPacker->WriteCustomData(XN_SENSOR_SERVER_MESSAGE_CLOSE_STREAM, GetName(), (XnUInt32)strlen(GetName()) + 1);
 	XN_IS_STATUS_OK(nRetVal);
 
 	// wait for reply
@@ -108,8 +102,6 @@ XnStatus XnSensorClientStream::Close()
 
 XnStatus XnSensorClientStream::Free()
 {
-	XnStatus nRetVal = XN_STATUS_OK;
-	
 	if (m_hSharedMemory != NULL)
 	{
 		xnOSCloseSharedMemory(m_hSharedMemory);
@@ -137,7 +129,7 @@ XnStatus XnSensorClientFrameStream::ReadImpl(XnStreamData* pStreamOutput)
 	XnStatus nRetVal = XN_STATUS_OK;
 
 	// read data from server
-	nRetVal = m_pClient->m_pOutgoingPacker->WriteCustomData(XN_SENSOR_SERVER_MESSAGE_READ_STREAM, pStreamOutput->StreamName, strlen(pStreamOutput->StreamName) + 1);
+	nRetVal = m_pClient->m_pOutgoingPacker->WriteCustomData(XN_SENSOR_SERVER_MESSAGE_READ_STREAM, pStreamOutput->StreamName, (XnUInt32)strlen(pStreamOutput->StreamName) + 1);
 	XN_IS_STATUS_OK(nRetVal);
 
 	// wait for reply
@@ -182,7 +174,8 @@ XnSensorClientAudioStream::XnSensorClientAudioStream(XnSensorClient* pClient, co
 	m_pBuffer(NULL),
 	m_nLastReadIndex(0),
 	m_hLock(NULL),
-	m_nFrameID(0)
+	m_nFrameID(0),
+	m_pTimestamps(NULL)
 {}
 
 XnSensorClientAudioStream::~XnSensorClientAudioStream()
@@ -231,7 +224,7 @@ XnStatus XnSensorClientAudioStream::OpenSharedMemory()
 	return (XN_STATUS_OK);
 }
 
-void XnSensorClientAudioStream::NewDataAvailable(XnUInt64 nTimestamp, XnUInt32 nFrameID)
+void XnSensorClientAudioStream::NewDataAvailable(XnUInt64 /*nTimestamp*/, XnUInt32 /*nFrameID*/)
 {
 	// if a read is in progress, wait for it to complete
 	XnAutoCSLocker locker(m_hLock);
@@ -245,8 +238,6 @@ void XnSensorClientAudioStream::NewDataAvailable(XnUInt64 nTimestamp, XnUInt32 n
 
 XnStatus XnSensorClientAudioStream::ReadImpl(XnStreamData* pStreamOutput)
 {
-	XnStatus nRetVal = XN_STATUS_OK;
-	
 	pStreamOutput->nDataSize = 0;
 
 	// take last write index (note: this is taken from shared memory)

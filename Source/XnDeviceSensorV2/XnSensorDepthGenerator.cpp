@@ -1,30 +1,24 @@
-/*****************************************************************************
-*                                                                            *
-*  PrimeSense Sensor 5.0 Alpha                                               *
-*  Copyright (C) 2010 PrimeSense Ltd.                                        *
-*                                                                            *
-*  This file is part of PrimeSense Common.                                   *
-*                                                                            *
-*  PrimeSense Sensor is free software: you can redistribute it and/or modify *
-*  it under the terms of the GNU Lesser General Public License as published  *
-*  by the Free Software Foundation, either version 3 of the License, or      *
-*  (at your option) any later version.                                       *
-*                                                                            *
-*  PrimeSense Sensor is distributed in the hope that it will be useful,      *
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of            *
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the              *
-*  GNU Lesser General Public License for more details.                       *
-*                                                                            *
-*  You should have received a copy of the GNU Lesser General Public License  *
-*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>. *
-*                                                                            *
-*****************************************************************************/
-
-
-
-
-
-
+/****************************************************************************
+*                                                                           *
+*  PrimeSense Sensor 5.x Alpha                                              *
+*  Copyright (C) 2011 PrimeSense Ltd.                                       *
+*                                                                           *
+*  This file is part of PrimeSense Sensor.                                  *
+*                                                                           *
+*  PrimeSense Sensor is free software: you can redistribute it and/or modify*
+*  it under the terms of the GNU Lesser General Public License as published *
+*  by the Free Software Foundation, either version 3 of the License, or     *
+*  (at your option) any later version.                                      *
+*                                                                           *
+*  PrimeSense Sensor is distributed in the hope that it will be useful,     *
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the             *
+*  GNU Lesser General Public License for more details.                      *
+*                                                                           *
+*  You should have received a copy of the GNU Lesser General Public License *
+*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>.*
+*                                                                           *
+****************************************************************************/
 //---------------------------------------------------------------------------
 // Includes
 //---------------------------------------------------------------------------
@@ -153,9 +147,9 @@ XnStatus XnSensorDepthGenerator::SetUserPosition(XnUInt32 nIndex, const XnBoundi
 {
 	// set (we only support Z boxing for now)
 	XnDepthAGCBin bin;
-	bin.nBin = nIndex;
-	bin.nMin = Position.LeftBottomNear.Z;
-	bin.nMax = Position.RightTopFar.Z;
+	bin.nBin = (XnUInt16)nIndex;
+	bin.nMin = (XnUInt16)Position.LeftBottomNear.Z;
+	bin.nMax = (XnUInt16)Position.RightTopFar.Z;
 	return m_pSensor->SetProperty(m_strModule, XN_STREAM_PROPERTY_AGC_BIN, XN_PACK_GENERAL_BUFFER(bin));
 }
 
@@ -165,7 +159,7 @@ XnStatus XnSensorDepthGenerator::GetUserPosition(XnUInt32 nIndex, XnBoundingBox3
 
 	// get
 	XnDepthAGCBin bin;
-	bin.nBin = nIndex;
+	bin.nBin = (XnUInt16)nIndex;
 	nRetVal =  m_pSensor->GetProperty(m_strModule, XN_STREAM_PROPERTY_AGC_BIN, XN_PACK_GENERAL_BUFFER(bin));
 	XN_IS_STATUS_OK(nRetVal);
 
@@ -177,9 +171,9 @@ XnStatus XnSensorDepthGenerator::GetUserPosition(XnUInt32 nIndex, XnBoundingBox3
 	Position.LeftBottomNear.Z = bin.nMin;
 	Position.RightTopFar.Z = bin.nMax;
 	Position.LeftBottomNear.X = 0;
-	Position.RightTopFar.X = MapOutputMode.nXRes - 1;
+	Position.RightTopFar.X = (XnFloat)(MapOutputMode.nXRes - 1);
 	Position.LeftBottomNear.Y = 0;
-	Position.RightTopFar.Y = MapOutputMode.nYRes - 1;
+	Position.RightTopFar.Y = (XnFloat)(MapOutputMode.nYRes - 1);
 
 	return (XN_STATUS_OK);
 }
@@ -296,8 +290,9 @@ XnStatus XnSensorDepthGenerator::FrameSyncWith(xn::ProductionNode& OtherNode)
 	}
 }
 
-XnStatus XnSensorDepthGenerator::StopFrameSyncWith(xn::ProductionNode& OtherNode)
+XnStatus XnSensorDepthGenerator::StopFrameSyncWith(xn::ProductionNode& /*OtherNode*/)
 {
+	// we assume the other node is the image one (this is the only one we started)
 	return m_pSensor->SetProperty(XN_MODULE_NAME_DEVICE, XN_MODULE_PROPERTY_FRAME_SYNC, (XnUInt64)FALSE);
 }
 

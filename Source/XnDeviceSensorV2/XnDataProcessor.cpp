@@ -1,30 +1,24 @@
-/*****************************************************************************
-*                                                                            *
-*  PrimeSense Sensor 5.0 Alpha                                               *
-*  Copyright (C) 2010 PrimeSense Ltd.                                        *
-*                                                                            *
-*  This file is part of PrimeSense Common.                                   *
-*                                                                            *
-*  PrimeSense Sensor is free software: you can redistribute it and/or modify *
-*  it under the terms of the GNU Lesser General Public License as published  *
-*  by the Free Software Foundation, either version 3 of the License, or      *
-*  (at your option) any later version.                                       *
-*                                                                            *
-*  PrimeSense Sensor is distributed in the hope that it will be useful,      *
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of            *
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the              *
-*  GNU Lesser General Public License for more details.                       *
-*                                                                            *
-*  You should have received a copy of the GNU Lesser General Public License  *
-*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>. *
-*                                                                            *
-*****************************************************************************/
-
-
-
-
-
-
+/****************************************************************************
+*                                                                           *
+*  PrimeSense Sensor 5.x Alpha                                              *
+*  Copyright (C) 2011 PrimeSense Ltd.                                       *
+*                                                                           *
+*  This file is part of PrimeSense Sensor.                                  *
+*                                                                           *
+*  PrimeSense Sensor is free software: you can redistribute it and/or modify*
+*  it under the terms of the GNU Lesser General Public License as published *
+*  by the Free Software Foundation, either version 3 of the License, or     *
+*  (at your option) any later version.                                      *
+*                                                                           *
+*  PrimeSense Sensor is distributed in the hope that it will be useful,     *
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the             *
+*  GNU Lesser General Public License for more details.                      *
+*                                                                           *
+*  You should have received a copy of the GNU Lesser General Public License *
+*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>.*
+*                                                                           *
+****************************************************************************/
 //---------------------------------------------------------------------------
 // Includes
 //---------------------------------------------------------------------------
@@ -75,7 +69,7 @@ void XnDataProcessor::ProcessData(const XnSensorProtocolResponseHeader* pHeader,
 		// log packet arrival
 		XnUInt64 nNow;
 		xnOSGetHighResTimeStamp(&nNow);
-		xnDumpWriteString(m_pDevicePrivateData->MiniPacketsDump, "%llu,0x%hx,0x%hx,0x%hx,%u\n", nNow, pHeader->nType, pHeader->nPacketID, pHeader->nBufSize, pHeader->nTimeStamp);
+		xnDumpFileWriteString(m_pDevicePrivateData->MiniPacketsDump, "%llu,0x%hx,0x%hx,0x%hx,%u\n", nNow, pHeader->nType, pHeader->nPacketID, pHeader->nBufSize, pHeader->nTimeStamp);
 	}
 
 	ProcessPacketChunk(pHeader, pData, nDataOffset, nDataSize);
@@ -94,7 +88,8 @@ XnUInt64 XnDataProcessor::GetTimeStamp(XnUInt32 nDeviceTimeStamp)
 	XnUInt64 nNow;
 	xnOSGetHighResTimeStamp(&nNow);
 
-	XnChar csDumpComment[200] = "";
+	const XnUInt32 nDumpCommentMaxLength = 200;
+	XnChar csDumpComment[nDumpCommentMaxLength] = "";
 
 	XnBool bCheckSanity = TRUE;
 
@@ -134,17 +129,17 @@ XnUInt64 XnDataProcessor::GetTimeStamp(XnUInt32 nDeviceTimeStamp)
 		XnUInt64 nOSTime = nNow - m_pDevicePrivateData->nGlobalReferenceOSTime;
 
 		// calculate wraparound length
-		XnFloat fWrapAroundInMicroseconds = nWrapPoint / (XnDouble)m_pDevicePrivateData->fDeviceFrequency;
+		XnDouble fWrapAroundInMicroseconds = nWrapPoint / (XnDouble)m_pDevicePrivateData->fDeviceFrequency;
 
 		// perform a rough estimation
-		XnInt32 nWraps = nOSTime / fWrapAroundInMicroseconds;
+		XnInt32 nWraps = (XnInt32)(nOSTime / fWrapAroundInMicroseconds);
 
 		// now fix the estimation by clipping TS to the correct wraparounds
 		XnInt64 nEstimatedTicks = 
 			nWraps * nWrapPoint + // wraps time
 			nDeviceTimeStamp - m_pDevicePrivateData->nGlobalReferenceTS;
 
-		XnInt64 nEstimatedTime = nEstimatedTicks / (XnDouble)m_pDevicePrivateData->fDeviceFrequency;
+		XnInt64 nEstimatedTime = (XnInt64)(nEstimatedTicks / (XnDouble)m_pDevicePrivateData->fDeviceFrequency);
 
 		if (nEstimatedTime < nOSTime - 0.5 * fWrapAroundInMicroseconds)
 			nWraps++;
@@ -199,14 +194,14 @@ XnUInt64 XnDataProcessor::GetTimeStamp(XnUInt32 nDeviceTimeStamp)
 	if (bCheckSanity && (nResultTimeMilliSeconds > (m_TimeStampData.nLastResultTime + XN_SENSOR_TIMESTAMP_SANITY_DIFF*1000)))
 	{
 		bIsSane = FALSE;
-		sprintf(csDumpComment, "%s,Didn't pass sanity. Will try to re-sync.", csDumpComment);
+		xnOSStrAppend(csDumpComment, ",Didn't pass sanity. Will try to re-sync.", nDumpCommentMaxLength);
 	}
 
 	// calc result
 	XnUInt64 nResult = (m_pDevicePrivateData->pSensor->IsHighResTimestamps() ? (XnUInt64)dResultTimeMicroSeconds : nResultTimeMilliSeconds);
 
 	// dump it
-	xnDumpWriteString(m_pDevicePrivateData->TimestampsDump, "%llu,%s,%u,%llu,%s\n", nNow, m_TimeStampData.csStreamName, nDeviceTimeStamp, nResult, csDumpComment);
+	xnDumpFileWriteString(m_pDevicePrivateData->TimestampsDump, "%llu,%s,%u,%llu,%s\n", nNow, m_TimeStampData.csStreamName, nDeviceTimeStamp, nResult, csDumpComment);
 
 	if (bIsSane)
 	{

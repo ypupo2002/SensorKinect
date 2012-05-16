@@ -1,30 +1,24 @@
-/*****************************************************************************
-*                                                                            *
-*  PrimeSense Sensor 5.0 Alpha                                               *
-*  Copyright (C) 2010 PrimeSense Ltd.                                        *
-*                                                                            *
-*  This file is part of PrimeSense Common.                                   *
-*                                                                            *
-*  PrimeSense Sensor is free software: you can redistribute it and/or modify *
-*  it under the terms of the GNU Lesser General Public License as published  *
-*  by the Free Software Foundation, either version 3 of the License, or      *
-*  (at your option) any later version.                                       *
-*                                                                            *
-*  PrimeSense Sensor is distributed in the hope that it will be useful,      *
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of            *
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the              *
-*  GNU Lesser General Public License for more details.                       *
-*                                                                            *
-*  You should have received a copy of the GNU Lesser General Public License  *
-*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>. *
-*                                                                            *
-*****************************************************************************/
-
-
-
-
-
-
+/****************************************************************************
+*                                                                           *
+*  PrimeSense Sensor 5.x Alpha                                              *
+*  Copyright (C) 2011 PrimeSense Ltd.                                       *
+*                                                                           *
+*  This file is part of PrimeSense Sensor.                                  *
+*                                                                           *
+*  PrimeSense Sensor is free software: you can redistribute it and/or modify*
+*  it under the terms of the GNU Lesser General Public License as published *
+*  by the Free Software Foundation, either version 3 of the License, or     *
+*  (at your option) any later version.                                      *
+*                                                                           *
+*  PrimeSense Sensor is distributed in the hope that it will be useful,     *
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the             *
+*  GNU Lesser General Public License for more details.                      *
+*                                                                           *
+*  You should have received a copy of the GNU Lesser General Public License *
+*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>.*
+*                                                                           *
+****************************************************************************/
 //---------------------------------------------------------------------------
 // Includes
 //---------------------------------------------------------------------------
@@ -38,14 +32,14 @@ XnAudioProcessor::XnAudioProcessor(XnSensorAudioStream* pStream, XnSensorStreamH
 	XnWholePacketProcessor(pHelper->GetPrivateData(), pStream->GetType(), nInputPacketSize),
 	m_pStream(pStream),
 	m_pHelper(pHelper),
-	m_AudioInDump(XN_DUMP_CLOSED)
+	m_AudioInDump(NULL)
 {
-	xnDumpInit(&m_AudioInDump, XN_DUMP_AUDIO_IN, NULL, "AudioIn.pcm");
+	m_AudioInDump = xnDumpFileOpen(XN_DUMP_AUDIO_IN, "AudioIn.pcm");
 }
 
 XnAudioProcessor::~XnAudioProcessor()
 {
-	xnDumpClose(&m_AudioInDump);
+	xnDumpFileClose(m_AudioInDump);
 	GetStream()->NumberOfChannelsProperty().OnChangeEvent().Unregister(m_hNumChannelsCallback);
 }
 
@@ -66,8 +60,6 @@ XnStatus XnAudioProcessor::Init()
 
 void XnAudioProcessor::ProcessWholePacket(const XnSensorProtocolResponseHeader* pHeader, const XnUChar* pData)
 {
-	XnInt32 nAvailableBytes = 0;
-
 	xnOSEnterCriticalSection(&m_pDevicePrivateData->hAudioBufferCriticalSection);
 
 	// take write packet
@@ -102,7 +94,7 @@ void XnAudioProcessor::ProcessWholePacket(const XnSensorProtocolResponseHeader* 
 		XnUInt64 nSysTime;
 		xnOSGetTimeStamp(&nSysTime);
 
-		xnDumpWriteString(m_pDevicePrivateData->BandwidthDump, "%llu,%s,%d,%d\n",
+		xnDumpFileWriteString(m_pDevicePrivateData->BandwidthDump, "%llu,%s,%d,%d\n",
 			nSysTime, "Audio", -1, m_nBytesReceived);
 
 		m_nBytesReceived = 0;
@@ -119,7 +111,7 @@ void XnAudioProcessor::ProcessWholePacket(const XnSensorProtocolResponseHeader* 
 
 	xnOSLeaveCriticalSection(&m_pDevicePrivateData->hAudioBufferCriticalSection);
 
-	xnDumpWriteBuffer(m_AudioInDump, pData, pHeader->nBufSize);
+	xnDumpFileWriteBuffer(m_AudioInDump, pData, pHeader->nBufSize);
 
 	if (m_pDevicePrivateData->pAudioCallback != NULL)
 	{
@@ -132,7 +124,7 @@ void XnAudioProcessor::CalcDeleteChannel()
 	m_bDeleteChannel = (m_pHelper->GetFirmwareVersion() >= XN_SENSOR_FW_VER_5_2 && GetStream()->GetNumberOfChannels() == 1);
 }
 
-XnStatus XnAudioProcessor::DeleteChannelChangedCallback(const XnProperty* pSender, void* pCookie)
+XnStatus XnAudioProcessor::DeleteChannelChangedCallback(const XnProperty* /*pSender*/, void* pCookie)
 {
 	XnAudioProcessor* pThis = (XnAudioProcessor*)pCookie;
 	pThis->CalcDeleteChannel();

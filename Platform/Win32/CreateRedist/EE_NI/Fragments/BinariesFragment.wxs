@@ -21,6 +21,7 @@
                     <File Id="fil1AE1A78AFB768F6BE201C2F7F7BB1B76" KeyPath="yes" Source="$(var.EE_NIFilesDir)\Bin$(var.PlatformSuffix)\XnDeviceFile$(var.PlatformSuffix).dll" />
                 </Component>
                 <Component Id="XnDeviceSensorV2" Guid="*">
+<!-- avin mod -->
                     <File Id="fil9B94B798603106A9EED4994EC16B4A27" KeyPath="yes" Source="$(var.EE_NIFilesDir)\Bin$(var.PlatformSuffix)\XnDeviceSensorV2KM$(var.PlatformSuffix).dll" />
                 </Component>                
                 <Component Id="XnFormats" Guid="*">
@@ -32,9 +33,11 @@
             </Directory>
             <Directory Id="dir82E287C749A0533338ECB68223E0D9A9" Name="Data">
                 <Component Id="GlobalDefaults" Guid="*">
+<!-- avin mod -->
                     <File Id="filC7C2030C8D2CE9E28311BE630BC01055" KeyPath="yes" Source="$(var.EE_NIFilesDir)\Data\GlobalDefaultsKinect.ini" />
                 </Component>                
             </Directory>            
+<!-- avin mod -->
 			<Directory Id="dir80E123015D0DE85FDA6E8AE3782EF58C" Name="Driver">
 				<Component Id="dpinstamd64" Guid="*">
 				  <File Id="fil5E7F1D7524A6D9945C6F32A897ACAB2E" KeyPath="yes" Source="$(var.EE_NIFilesDir)\Driver\dpinst-amd64.exe" />
@@ -84,6 +87,7 @@
             <ComponentRef Id="XnFormats" />            
             <ComponentRef Id="XnSensorServer" />
             <ComponentRef Id="GlobalDefaults" />
+<!-- avin mod -->
 			<ComponentRef Id="dpinstamd64"/>
 			<ComponentRef Id="dpinstx86"/>
 			<ComponentRef Id="dpinst"/>

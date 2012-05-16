@@ -1,25 +1,24 @@
-/*****************************************************************************
-*                                                                            *
-*  PrimeSense Sensor 5.0 Alpha                                               *
-*  Copyright (C) 2010 PrimeSense Ltd.                                        *
-*                                                                            *
-*  This file is part of PrimeSense Common.                                   *
-*                                                                            *
-*  PrimeSense Sensor is free software: you can redistribute it and/or modify *
-*  it under the terms of the GNU Lesser General Public License as published  *
-*  by the Free Software Foundation, either version 3 of the License, or      *
-*  (at your option) any later version.                                       *
-*                                                                            *
-*  PrimeSense Sensor is distributed in the hope that it will be useful,      *
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of            *
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the              *
-*  GNU Lesser General Public License for more details.                       *
-*                                                                            *
-*  You should have received a copy of the GNU Lesser General Public License  *
-*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>. *
-*                                                                            *
-*****************************************************************************/
-
+/****************************************************************************
+*                                                                           *
+*  PrimeSense Sensor 5.x Alpha                                              *
+*  Copyright (C) 2011 PrimeSense Ltd.                                       *
+*                                                                           *
+*  This file is part of PrimeSense Sensor.                                  *
+*                                                                           *
+*  PrimeSense Sensor is free software: you can redistribute it and/or modify*
+*  it under the terms of the GNU Lesser General Public License as published *
+*  by the Free Software Foundation, either version 3 of the License, or     *
+*  (at your option) any later version.                                      *
+*                                                                           *
+*  PrimeSense Sensor is distributed in the hope that it will be useful,     *
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the             *
+*  GNU Lesser General Public License for more details.                      *
+*                                                                           *
+*  You should have received a copy of the GNU Lesser General Public License *
+*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>.*
+*                                                                           *
+****************************************************************************/
 //---------------------------------------------------------------------------
 // Includes
 //---------------------------------------------------------------------------
@@ -51,10 +50,10 @@
 //---------------------------------------------------------------------------
 // XnSensorDepthStream class
 //---------------------------------------------------------------------------
-XnSensorDepthStream::XnSensorDepthStream(const XnChar* strDeviceName, const XnChar* strName, XnSensorObjects* pObjects, XnUInt32 nBufferCount) : 
+XnSensorDepthStream::XnSensorDepthStream(const XnChar* strDeviceName, const XnChar* strName, XnSensorObjects* pObjects, XnUInt32 nBufferCount, XnBool bAllowOtherUsers) : 
 	XnDepthStream(strName, FALSE, XN_DEVICE_SENSOR_MAX_DEPTH, XN_SHIFTS_MAX_SHIFT),
 	m_Helper(pObjects),
-	m_BufferPool(nBufferCount, strDeviceName, strName, XN_DEPTH_MAX_BUFFER_SIZE),
+	m_BufferPool(nBufferCount, strDeviceName, strName, XN_DEPTH_MAX_BUFFER_SIZE, bAllowOtherUsers),
 	m_SharedBufferName(XN_STREAM_PROPERTY_SHARED_BUFFER_NAME, m_BufferPool.GetSharedMemoryName()),
 	m_InputFormat(XN_STREAM_PROPERTY_INPUT_FORMAT, XN_DEPTH_STREAM_DEFAULT_INPUT_FORMAT),
 	m_DepthRegistration(XN_STREAM_PROPERTY_REGISTRATION, XN_DEPTH_STREAM_DEFAULT_REGISTRATION),
@@ -101,8 +100,8 @@ XnStatus XnSensorDepthStream::Init()
 
 	XN_VALIDATE_ADD_PROPERTIES(this, &m_InputFormat, &m_DepthRegistration, &m_HoleFilter, 
 		&m_WhiteBalance, &m_Gain, &m_AGCBin, &m_SharedBufferName, &m_ActualRead, &m_GMCMode, 
-		&m_RegistrationType,
-	);
+		&m_RegistrationType);
+
 
 	if (m_Helper.GetPrivateData()->pSensor->IsLowBandwidth())
 	{
@@ -141,6 +140,9 @@ XnStatus XnSensorDepthStream::Init()
 	XN_IS_STATUS_OK(nRetVal);
 
 	nRetVal = EmitterDCmosDistanceProperty().UnsafeUpdateValue(m_Helper.GetFixedParams()->GetEmitterDCmosDistance());
+	XN_IS_STATUS_OK(nRetVal);
+
+	nRetVal = GetDCmosRCmosDistanceProperty().UnsafeUpdateValue(m_Helper.GetFixedParams()->GetDCmosRCmosDistance());
 	XN_IS_STATUS_OK(nRetVal);
 
 	// init helper
@@ -429,7 +431,7 @@ XnStatus XnSensorDepthStream::SetMirror(XnBool bIsMirrored)
 	// set firmware mirror
 	XnBool bFirmwareMirror = (bIsMirrored == TRUE && m_Helper.GetFirmwareVersion() >= XN_SENSOR_FW_VER_5_0);
 
-	nRetVal = m_Helper.SimpleSetFirmwareParam(m_FirmwareMirror, bFirmwareMirror);
+	nRetVal = m_Helper.SimpleSetFirmwareParam(m_FirmwareMirror, (XnUInt16)bFirmwareMirror);
 	if (nRetVal != XN_STATUS_OK)
 	{
 		xnOSLeaveCriticalSection(GetLock());
@@ -448,7 +450,7 @@ XnStatus XnSensorDepthStream::SetFPS(XnUInt32 nFPS)
 {
 	XnStatus nRetVal = XN_STATUS_OK;
 	
-	nRetVal = m_Helper.BeforeSettingFirmwareParam(FPSProperty(), nFPS);
+	nRetVal = m_Helper.BeforeSettingFirmwareParam(FPSProperty(), (XnUInt16)nFPS);
 	XN_IS_STATUS_OK(nRetVal);
 
 	nRetVal = XnDepthStream::SetFPS(nFPS);
@@ -464,7 +466,7 @@ XnStatus XnSensorDepthStream::SetResolution(XnResolutions nResolution)
 {
 	XnStatus nRetVal = XN_STATUS_OK;
 
-	nRetVal = m_Helper.BeforeSettingFirmwareParam(ResolutionProperty(), nResolution);
+	nRetVal = m_Helper.BeforeSettingFirmwareParam(ResolutionProperty(), (XnUInt16)nResolution);
 	XN_IS_STATUS_OK(nRetVal);
 
 	nRetVal = XnDepthStream::SetResolution(nResolution);
@@ -495,7 +497,7 @@ XnStatus XnSensorDepthStream::SetInputFormat(XnIODepthFormats nInputFormat)
 		XN_LOG_WARNING_RETURN(XN_STATUS_DEVICE_BAD_PARAM, XN_MASK_DEVICE_SENSOR, "Unknown depth input format: %d", nInputFormat);
 	}
 	
-	nRetVal = m_Helper.SimpleSetFirmwareParam(m_InputFormat, nInputFormat);
+	nRetVal = m_Helper.SimpleSetFirmwareParam(m_InputFormat, (XnUInt16)nInputFormat);
 	XN_IS_STATUS_OK(nRetVal);
 	
 	return (XN_STATUS_OK);
@@ -521,7 +523,7 @@ XnStatus XnSensorDepthStream::SetHoleFilter(XnBool bHoleFilter)
 {
 	XnStatus nRetVal = XN_STATUS_OK;
 
-	nRetVal = m_Helper.SimpleSetFirmwareParam(m_HoleFilter, bHoleFilter);
+	nRetVal = m_Helper.SimpleSetFirmwareParam(m_HoleFilter, (XnUInt16)bHoleFilter);
 	XN_IS_STATUS_OK(nRetVal);
 
 	return (XN_STATUS_OK);
@@ -531,7 +533,7 @@ XnStatus XnSensorDepthStream::SetWhiteBalance(XnBool bWhiteBalance)
 {
 	XnStatus nRetVal = XN_STATUS_OK;
 
-	nRetVal = m_Helper.SimpleSetFirmwareParam(m_WhiteBalance, bWhiteBalance);
+	nRetVal = m_Helper.SimpleSetFirmwareParam(m_WhiteBalance, (XnUInt16)bWhiteBalance);
 	XN_IS_STATUS_OK(nRetVal);
 
 	return (XN_STATUS_OK);
@@ -541,7 +543,7 @@ XnStatus XnSensorDepthStream::SetGain(XnUInt32 nGain)
 {
 	XnStatus nRetVal = XN_STATUS_OK;
 
-	nRetVal = m_Helper.SimpleSetFirmwareParam(m_Gain, nGain);
+	nRetVal = m_Helper.SimpleSetFirmwareParam(m_Gain, (XnUInt16)nGain);
 	XN_IS_STATUS_OK(nRetVal);
 
 	return (XN_STATUS_OK);
@@ -568,7 +570,7 @@ XnStatus XnSensorDepthStream::SetGMCMode(XnBool bGMCMode)
 	XnStatus nRetVal = XN_STATUS_OK;
 
 
-	nRetVal = m_Helper.SimpleSetFirmwareParam(m_GMCMode, bGMCMode);
+	nRetVal = m_Helper.SimpleSetFirmwareParam(m_GMCMode, (XnUInt16)bGMCMode);
 	XN_IS_STATUS_OK(nRetVal);
 
 	return (XN_STATUS_OK);
@@ -654,7 +656,9 @@ XnStatus XnSensorDepthStream::SetCropping(const XnCropping* pCropping)
 		}
 
 		if (nRetVal == XN_STATUS_OK)
-			nRetVal = m_Helper.SimpleSetFirmwareParam(m_FirmwareCropEnabled, pCropping->bEnabled);
+		{
+			nRetVal = m_Helper.SimpleSetFirmwareParam(m_FirmwareCropEnabled, (XnUInt16)pCropping->bEnabled);
+		}
 
 		if (nRetVal != XN_STATUS_OK)
 		{
@@ -760,8 +764,6 @@ XnStatus XnSensorDepthStream::Mirror(XnStreamData* pStreamOutput) const
 
 XnStatus XnSensorDepthStream::CreateDataProcessor(XnDataProcessor** ppProcessor)
 {
-	XnStatus nRetVal = XN_STATUS_OK;
-
 	XnStreamProcessor* pNew;
 
 	switch (m_InputFormat.GetValue())
@@ -830,7 +832,7 @@ XnStatus XnSensorDepthStream::DecideFirmwareRegistration(XnBool bRegistration, X
 		}
 	}
 
-	nRetVal = m_Helper.SimpleSetFirmwareParam(m_FirmwareRegistration, bFirmwareRegistration);
+	nRetVal = m_Helper.SimpleSetFirmwareParam(m_FirmwareRegistration, (XnUInt16)bFirmwareRegistration);
 	XN_IS_STATUS_OK(nRetVal);
 
 	return (XN_STATUS_OK);
@@ -870,50 +872,50 @@ XnStatus XnSensorDepthStream::DecidePixelSizeFactor()
 	return (XN_STATUS_OK);
 }
 
-XnStatus XN_CALLBACK_TYPE XnSensorDepthStream::SetInputFormatCallback(XnActualIntProperty* pSender, XnUInt64 nValue, void* pCookie)
+XnStatus XN_CALLBACK_TYPE XnSensorDepthStream::SetInputFormatCallback(XnActualIntProperty* /*pSender*/, XnUInt64 nValue, void* pCookie)
 {
 	XnSensorDepthStream* pStream = (XnSensorDepthStream*)pCookie;
 	return pStream->SetInputFormat((XnIODepthFormats)nValue);
 }
 
-XnStatus XN_CALLBACK_TYPE XnSensorDepthStream::SetRegistrationCallback(XnActualIntProperty* pSender, XnUInt64 nValue, void* pCookie)
+XnStatus XN_CALLBACK_TYPE XnSensorDepthStream::SetRegistrationCallback(XnActualIntProperty* /*pSender*/, XnUInt64 nValue, void* pCookie)
 {
 	XnSensorDepthStream* pStream = (XnSensorDepthStream*)pCookie;
 	return pStream->SetRegistration((XnBool)nValue);
 }
 
-XnStatus XN_CALLBACK_TYPE XnSensorDepthStream::SetHoleFilterCallback(XnActualIntProperty* pSender, XnUInt64 nValue, void* pCookie)
+XnStatus XN_CALLBACK_TYPE XnSensorDepthStream::SetHoleFilterCallback(XnActualIntProperty* /*pSender*/, XnUInt64 nValue, void* pCookie)
 {
 	XnSensorDepthStream* pStream = (XnSensorDepthStream*)pCookie;
 	return pStream->SetHoleFilter((XnBool)nValue);
 }
 
-XnStatus XN_CALLBACK_TYPE XnSensorDepthStream::SetWhiteBalanceCallback(XnActualIntProperty* pSender, XnUInt64 nValue, void* pCookie)
+XnStatus XN_CALLBACK_TYPE XnSensorDepthStream::SetWhiteBalanceCallback(XnActualIntProperty* /*pSender*/, XnUInt64 nValue, void* pCookie)
 {
 	XnSensorDepthStream* pStream = (XnSensorDepthStream*)pCookie;
 	return pStream->SetWhiteBalance((XnBool)nValue);
 }
 
-XnStatus XN_CALLBACK_TYPE XnSensorDepthStream::SetGainCallback(XnActualIntProperty* pSender, XnUInt64 nValue, void* pCookie)
+XnStatus XN_CALLBACK_TYPE XnSensorDepthStream::SetGainCallback(XnActualIntProperty* /*pSender*/, XnUInt64 nValue, void* pCookie)
 {
 	XnSensorDepthStream* pStream = (XnSensorDepthStream*)pCookie;
 	return pStream->SetGain((XnUInt32)nValue);
 }
 
-XnStatus XN_CALLBACK_TYPE XnSensorDepthStream::SetRegistrationTypeCallback(XnActualIntProperty* pSender, XnUInt64 nValue, void* pCookie)
+XnStatus XN_CALLBACK_TYPE XnSensorDepthStream::SetRegistrationTypeCallback(XnActualIntProperty* /*pSender*/, XnUInt64 nValue, void* pCookie)
 {
 	XnSensorDepthStream* pStream = (XnSensorDepthStream*)pCookie;
 	return pStream->SetRegistrationType((XnProcessingType)nValue);
 }
 
-XnStatus XN_CALLBACK_TYPE XnSensorDepthStream::SetGMCModeCallback(XnActualIntProperty* pSender, XnUInt64 nValue, void* pCookie)
+XnStatus XN_CALLBACK_TYPE XnSensorDepthStream::SetGMCModeCallback(XnActualIntProperty* /*pSender*/, XnUInt64 nValue, void* pCookie)
 {
 	XnSensorDepthStream* pStream = (XnSensorDepthStream*)pCookie;
 	return pStream->SetGMCMode((XnBool)nValue);
 }
 
 
-XnStatus XN_CALLBACK_TYPE XnSensorDepthStream::SetAGCBinCallback(XnGeneralProperty* pSender, const XnGeneralBuffer& gbValue, void* pCookie)
+XnStatus XN_CALLBACK_TYPE XnSensorDepthStream::SetAGCBinCallback(XnGeneralProperty* /*pSender*/, const XnGeneralBuffer& gbValue, void* pCookie)
 {
 	if (gbValue.nDataSize != sizeof(XnDepthAGCBin))
 	{
@@ -924,7 +926,7 @@ XnStatus XN_CALLBACK_TYPE XnSensorDepthStream::SetAGCBinCallback(XnGeneralProper
 	return pStream->SetAGCBin((XnDepthAGCBin*)gbValue.pData);
 }
 
-XnStatus XN_CALLBACK_TYPE XnSensorDepthStream::GetAGCBinCallback(const XnGeneralProperty* pSender, const XnGeneralBuffer& gbValue, void* pCookie)
+XnStatus XN_CALLBACK_TYPE XnSensorDepthStream::GetAGCBinCallback(const XnGeneralProperty* /*pSender*/, const XnGeneralBuffer& gbValue, void* pCookie)
 {
 	if (gbValue.nDataSize != sizeof(XnDepthAGCBin))
 	{
@@ -935,19 +937,19 @@ XnStatus XN_CALLBACK_TYPE XnSensorDepthStream::GetAGCBinCallback(const XnGeneral
 	return pStream->GetAGCBin((XnDepthAGCBin*)gbValue.pData);
 }
 
-XnStatus XN_CALLBACK_TYPE XnSensorDepthStream::SetActualReadCallback(XnActualIntProperty* pSender, XnUInt64 nValue, void* pCookie)
+XnStatus XN_CALLBACK_TYPE XnSensorDepthStream::SetActualReadCallback(XnActualIntProperty* /*pSender*/, XnUInt64 nValue, void* pCookie)
 {
 	XnSensorDepthStream* pThis = (XnSensorDepthStream*)pCookie;
 	return pThis->SetActualRead(nValue == TRUE);
 }
 
-XnStatus XN_CALLBACK_TYPE XnSensorDepthStream::DecideFirmwareRegistrationCallback(const XnProperty* pSender, void* pCookie)
+XnStatus XN_CALLBACK_TYPE XnSensorDepthStream::DecideFirmwareRegistrationCallback(const XnProperty* /*pSender*/, void* pCookie)
 {
 	XnSensorDepthStream* pStream = (XnSensorDepthStream*)pCookie;
 	return pStream->DecideFirmwareRegistration((XnBool)pStream->m_DepthRegistration.GetValue(), (XnProcessingType)pStream->m_RegistrationType.GetValue(), pStream->GetResolution());
 }
 
-XnStatus XN_CALLBACK_TYPE XnSensorDepthStream::DecidePixelSizeFactorCallback(const XnProperty* pSender, void* pCookie)
+XnStatus XN_CALLBACK_TYPE XnSensorDepthStream::DecidePixelSizeFactorCallback(const XnProperty* /*pSender*/, void* pCookie)
 {
 	XnSensorDepthStream* pStream = (XnSensorDepthStream*)pCookie;
 	return pStream->DecidePixelSizeFactor();
@@ -963,25 +965,25 @@ XnStatus XN_CALLBACK_TYPE XnSensorDepthStream::ReadAGCBinsFromFile(XnGeneralProp
 		XnUInt32 nValue;
 
 		XnDepthAGCBin bin;
-		bin.nBin = nBin;
+		bin.nBin = (XnUInt16)nBin;
 
 		XnBool bHasMin = FALSE;
 		XnBool bHasMax = FALSE;
 
-		sprintf(csKey, "AGCBin%dMinDepth", nBin);
+		sprintf(csKey, "AGCBin%uMinDepth", nBin);
 
 		nRetVal = xnOSReadIntFromINI(csINIFile, csSection, csKey, &nValue);
 		if (nRetVal == XN_STATUS_OK)
 		{
-			bin.nMin = nValue;
+			bin.nMin = (XnUInt16)nValue;
 			bHasMin = TRUE;
 		}
 
-		sprintf(csKey, "AGCBin%dMaxDepth", nBin);
+		sprintf(csKey, "AGCBin%uMaxDepth", nBin);
 		nRetVal = xnOSReadIntFromINI(csINIFile, csSection, csKey, &nValue);
 		if (nRetVal == XN_STATUS_OK)
 		{
-			bin.nMax = nValue;
+			bin.nMax = (XnUInt16)nValue;
 			bHasMax = TRUE;
 		}
 

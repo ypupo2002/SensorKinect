@@ -1,30 +1,24 @@
-/*****************************************************************************
-*                                                                            *
-*  PrimeSense Sensor 5.0 Alpha                                               *
-*  Copyright (C) 2010 PrimeSense Ltd.                                        *
-*                                                                            *
-*  This file is part of PrimeSense Common.                                   *
-*                                                                            *
-*  PrimeSense Sensor is free software: you can redistribute it and/or modify *
-*  it under the terms of the GNU Lesser General Public License as published  *
-*  by the Free Software Foundation, either version 3 of the License, or      *
-*  (at your option) any later version.                                       *
-*                                                                            *
-*  PrimeSense Sensor is distributed in the hope that it will be useful,      *
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of            *
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the              *
-*  GNU Lesser General Public License for more details.                       *
-*                                                                            *
-*  You should have received a copy of the GNU Lesser General Public License  *
-*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>. *
-*                                                                            *
-*****************************************************************************/
-
-
-
-
-
-
+/****************************************************************************
+*                                                                           *
+*  PrimeSense Sensor 5.x Alpha                                              *
+*  Copyright (C) 2011 PrimeSense Ltd.                                       *
+*                                                                           *
+*  This file is part of PrimeSense Sensor.                                  *
+*                                                                           *
+*  PrimeSense Sensor is free software: you can redistribute it and/or modify*
+*  it under the terms of the GNU Lesser General Public License as published *
+*  by the Free Software Foundation, either version 3 of the License, or     *
+*  (at your option) any later version.                                      *
+*                                                                           *
+*  PrimeSense Sensor is distributed in the hope that it will be useful,     *
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the             *
+*  GNU Lesser General Public License for more details.                      *
+*                                                                           *
+*  You should have received a copy of the GNU Lesser General Public License *
+*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>.*
+*                                                                           *
+****************************************************************************/
 //---------------------------------------------------------------------------
 // Includes
 //---------------------------------------------------------------------------
@@ -42,11 +36,11 @@
 //---------------------------------------------------------------------------
 // XnSensorIRStream class
 //---------------------------------------------------------------------------
-XnSensorIRStream::XnSensorIRStream(const XnChar* strDeviceName, const XnChar* StreamName, XnSensorObjects* pObjects, XnUInt32 nBufferCount) : 
+XnSensorIRStream::XnSensorIRStream(const XnChar* strDeviceName, const XnChar* StreamName, XnSensorObjects* pObjects, XnUInt32 nBufferCount, XnBool bAllowOtherUsers) : 
 	XnIRStream(StreamName, FALSE),
 	m_Helper(pObjects),
 	m_InputFormat(XN_STREAM_PROPERTY_INPUT_FORMAT, 0),
-	m_BufferPool(nBufferCount, strDeviceName, StreamName, XN_IR_MAX_BUFFER_SIZE),
+	m_BufferPool(nBufferCount, strDeviceName, StreamName, XN_IR_MAX_BUFFER_SIZE, bAllowOtherUsers),
 	m_SharedBufferName(XN_STREAM_PROPERTY_SHARED_BUFFER_NAME, m_BufferPool.GetSharedMemoryName()),
 	m_FirmwareCropSizeX("FirmwareCropSizeX", 0, StreamName),
 	m_FirmwareCropSizeY("FirmwareCropSizeY", 0, StreamName),
@@ -105,7 +99,7 @@ XnStatus XnSensorIRStream::Init()
 			// --avin mod--
 			{ 0, XN_RESOLUTION_SXGA, 15 },
 		};
-		nRetVal = AddSupportedModes(aSupportedModes, sizeof(aSupportedModes)/sizeof(aSupportedModes[0]));
+		nRetVal = AddSupportedModes(aSupportedModesSXGA, sizeof(aSupportedModesSXGA)/sizeof(aSupportedModesSXGA[0]));
 		XN_IS_STATUS_OK(nRetVal);
 	}
 
@@ -290,7 +284,7 @@ XnStatus XnSensorIRStream::SetFPS(XnUInt32 nFPS)
 {
 	XnStatus nRetVal = XN_STATUS_OK;
 
-	nRetVal = m_Helper.BeforeSettingFirmwareParam(FPSProperty(), nFPS);
+	nRetVal = m_Helper.BeforeSettingFirmwareParam(FPSProperty(), (XnUInt16)nFPS);
 	XN_IS_STATUS_OK(nRetVal);
 
 	nRetVal = XnIRStream::SetFPS(nFPS);
@@ -306,7 +300,7 @@ XnStatus XnSensorIRStream::SetResolution(XnResolutions nResolution)
 {
 	XnStatus nRetVal = XN_STATUS_OK;
 
-	nRetVal = m_Helper.BeforeSettingFirmwareParam(ResolutionProperty(), nResolution);
+	nRetVal = m_Helper.BeforeSettingFirmwareParam(ResolutionProperty(), (XnUInt16)nResolution);
 	XN_IS_STATUS_OK(nRetVal);
 
 	nRetVal = XnIRStream::SetResolution(nResolution);
@@ -341,7 +335,7 @@ XnStatus XnSensorIRStream::SetCropping(const XnCropping* pCropping)
 		XnUInt16 nXOffset = pCropping->nXOffset;
 		if (IsMirrored())
 		{
-			nXOffset = GetXRes() - pCropping->nXOffset - pCropping->nXSize;
+			nXOffset = (XnUInt16)(GetXRes() - pCropping->nXOffset - pCropping->nXSize);
 		}
 
 		if (pCropping->bEnabled)
@@ -359,7 +353,9 @@ XnStatus XnSensorIRStream::SetCropping(const XnCropping* pCropping)
 		}
 
 		if (nRetVal == XN_STATUS_OK)
-			nRetVal = m_Helper.SimpleSetFirmwareParam(m_FirmwareCropEnabled, pCropping->bEnabled);
+		{
+			nRetVal = m_Helper.SimpleSetFirmwareParam(m_FirmwareCropEnabled, (XnUInt16)pCropping->bEnabled);
+		}
 
 		if (nRetVal != XN_STATUS_OK)
 		{
@@ -452,8 +448,6 @@ XnStatus XnSensorIRStream::CropImpl(XnStreamData* pStreamOutput, const XnCroppin
 
 XnStatus XnSensorIRStream::CreateDataProcessor(XnDataProcessor** ppProcessor)
 {
-	XnStatus nRetVal = XN_STATUS_OK;
-
 	XnDataProcessor* pNew;
 	XN_VALIDATE_NEW_AND_INIT(pNew, XnIRProcessor, this, &m_Helper);
 
@@ -477,13 +471,13 @@ XnStatus XnSensorIRStream::OnIsMirroredChanged()
 	return (XN_STATUS_OK);
 }
 
-XnStatus XnSensorIRStream::IsMirroredChangedCallback(const XnProperty* pSender, void* pCookie)
+XnStatus XnSensorIRStream::IsMirroredChangedCallback(const XnProperty* /*pSender*/, void* pCookie)
 {
 	XnSensorIRStream* pThis = (XnSensorIRStream*)pCookie;
 	return pThis->OnIsMirroredChanged();
 }
 
-XnStatus XN_CALLBACK_TYPE XnSensorIRStream::SetActualReadCallback(XnActualIntProperty* pSender, XnUInt64 nValue, void* pCookie)
+XnStatus XN_CALLBACK_TYPE XnSensorIRStream::SetActualReadCallback(XnActualIntProperty* /*pSender*/, XnUInt64 nValue, void* pCookie)
 {
 	XnSensorIRStream* pThis = (XnSensorIRStream*)pCookie;
 	return pThis->SetActualRead(nValue == TRUE);

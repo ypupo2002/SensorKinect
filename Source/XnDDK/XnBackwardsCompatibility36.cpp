@@ -1,30 +1,24 @@
-/*****************************************************************************
-*                                                                            *
-*  PrimeSense Sensor 5.0 Alpha                                               *
-*  Copyright (C) 2010 PrimeSense Ltd.                                        *
-*                                                                            *
-*  This file is part of PrimeSense Common.                                   *
-*                                                                            *
-*  PrimeSense Sensor is free software: you can redistribute it and/or modify *
-*  it under the terms of the GNU Lesser General Public License as published  *
-*  by the Free Software Foundation, either version 3 of the License, or      *
-*  (at your option) any later version.                                       *
-*                                                                            *
-*  PrimeSense Sensor is distributed in the hope that it will be useful,      *
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of            *
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the              *
-*  GNU Lesser General Public License for more details.                       *
-*                                                                            *
-*  You should have received a copy of the GNU Lesser General Public License  *
-*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>. *
-*                                                                            *
-*****************************************************************************/
-
-
-
-
-
-
+/****************************************************************************
+*                                                                           *
+*  PrimeSense Sensor 5.x Alpha                                              *
+*  Copyright (C) 2011 PrimeSense Ltd.                                       *
+*                                                                           *
+*  This file is part of PrimeSense Sensor.                                  *
+*                                                                           *
+*  PrimeSense Sensor is free software: you can redistribute it and/or modify*
+*  it under the terms of the GNU Lesser General Public License as published *
+*  by the Free Software Foundation, either version 3 of the License, or     *
+*  (at your option) any later version.                                      *
+*                                                                           *
+*  PrimeSense Sensor is distributed in the hope that it will be useful,     *
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the             *
+*  GNU Lesser General Public License for more details.                      *
+*                                                                           *
+*  You should have received a copy of the GNU Lesser General Public License *
+*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>.*
+*                                                                           *
+****************************************************************************/
 //---------------------------------------------------------------------------
 // Includes
 //---------------------------------------------------------------------------
@@ -37,8 +31,6 @@
 //---------------------------------------------------------------------------
 XnStatus XnBCDepthFormatToOutputFormat(XnStreamDepthFormat nDepthFormat, XnOutputFormats* pnOutputFormat)
 {
-	XnStatus nRetVal = XN_STATUS_OK;
-
 	switch (nDepthFormat)
 	{
 	case XN_DEPTH_FORMAT_RAW10:
@@ -57,8 +49,6 @@ XnStatus XnBCDepthFormatToOutputFormat(XnStreamDepthFormat nDepthFormat, XnOutpu
 
 XnStatus XnBCOutputFormatToDepthFormat(XnOutputFormats nOutputFormat, XnStreamDepthFormat* pnDepthFormat)
 {
-	XnStatus nRetVal = XN_STATUS_OK;
-
 	switch (nOutputFormat)
 	{
 	case XN_OUTPUT_FORMAT_DEPTH_VALUES:
@@ -76,8 +66,6 @@ XnStatus XnBCOutputFormatToDepthFormat(XnOutputFormats nOutputFormat, XnStreamDe
 
 XnStatus XnBCImageFormatToOutputFormat(XnStreamImageFormat nImageFormat, XnOutputFormats* pnOutputFormat)
 {
-	XnStatus nRetVal = XN_STATUS_OK;
-
 	switch (nImageFormat)
 	{
 	case XN_IMAGE_FORMAT_GRAYSCALE8:
@@ -98,8 +86,6 @@ XnStatus XnBCImageFormatToOutputFormat(XnStreamImageFormat nImageFormat, XnOutpu
 
 XnStatus XnBCOutputFormatToImageFormat(XnOutputFormats nOutputFormat, XnStreamImageFormat* pnImageFormat)
 {
-	XnStatus nRetVal = XN_STATUS_OK;
-
 	switch (nOutputFormat)
 	{
 	case XN_OUTPUT_FORMAT_GRAYSCALE8:
@@ -123,8 +109,6 @@ XnStatus XnBCOutputFormatToImageFormat(XnOutputFormats nOutputFormat, XnStreamIm
 
 XnStatus XnBCAudioFormatToOutputFormat(XnStreamAudioFormat nAudioFormat, XnOutputFormats* pnOutputFormat)
 {
-	XnStatus nRetVal = XN_STATUS_OK;
-
 	switch (nAudioFormat)
 	{
 	case XN_AUDIO_FORMAT_PCM:
@@ -139,8 +123,6 @@ XnStatus XnBCAudioFormatToOutputFormat(XnStreamAudioFormat nAudioFormat, XnOutpu
 
 XnStatus XnBCOutputFormatToAudioFormat(XnOutputFormats nOutputFormat, XnStreamAudioFormat* pnAudioFormat)
 {
-	XnStatus nRetVal = XN_STATUS_OK;
-
 	switch (nOutputFormat)
 	{
 	case XN_OUTPUT_FORMAT_PCM:

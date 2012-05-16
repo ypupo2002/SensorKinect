@@ -1,30 +1,24 @@
-/*****************************************************************************
-*                                                                            *
-*  PrimeSense Sensor 5.0 Alpha                                               *
-*  Copyright (C) 2010 PrimeSense Ltd.                                        *
-*                                                                            *
-*  This file is part of PrimeSense Common.                                   *
-*                                                                            *
-*  PrimeSense Sensor is free software: you can redistribute it and/or modify *
-*  it under the terms of the GNU Lesser General Public License as published  *
-*  by the Free Software Foundation, either version 3 of the License, or      *
-*  (at your option) any later version.                                       *
-*                                                                            *
-*  PrimeSense Sensor is distributed in the hope that it will be useful,      *
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of            *
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the              *
-*  GNU Lesser General Public License for more details.                       *
-*                                                                            *
-*  You should have received a copy of the GNU Lesser General Public License  *
-*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>. *
-*                                                                            *
-*****************************************************************************/
-
-
-
-
-
-
+/****************************************************************************
+*                                                                           *
+*  PrimeSense Sensor 5.x Alpha                                              *
+*  Copyright (C) 2011 PrimeSense Ltd.                                       *
+*                                                                           *
+*  This file is part of PrimeSense Sensor.                                  *
+*                                                                           *
+*  PrimeSense Sensor is free software: you can redistribute it and/or modify*
+*  it under the terms of the GNU Lesser General Public License as published *
+*  by the Free Software Foundation, either version 3 of the License, or     *
+*  (at your option) any later version.                                      *
+*                                                                           *
+*  PrimeSense Sensor is distributed in the hope that it will be useful,     *
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the             *
+*  GNU Lesser General Public License for more details.                      *
+*                                                                           *
+*  You should have received a copy of the GNU Lesser General Public License *
+*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>.*
+*                                                                           *
+****************************************************************************/
 //---------------------------------------------------------------------------
 // Includes
 //---------------------------------------------------------------------------
@@ -61,8 +55,8 @@ inline XnDouble XnXRegistrationFunction1000(XnRegistrationInformation1000& regIn
 		regInfo1000.FuncX.dD,
 		regInfo1000.FuncX.dE,
 		regInfo1000.FuncX.dF,
-		nX - nXRes/2, 
-		nY - nYRes/2);
+		(XnUInt16)(nX - nXRes/2), 
+		(XnUInt16)(nY - nYRes/2));
 }
 
 inline XnDouble XnYRegistrationFunction1000(XnRegistrationInformation1000& regInfo1000, XnUInt16 nX, XnUInt16 nY, XnUInt32 nXRes, XnUInt32 nYRes)
@@ -74,8 +68,8 @@ inline XnDouble XnYRegistrationFunction1000(XnRegistrationInformation1000& regIn
 		regInfo1000.FuncY.dD,
 		regInfo1000.FuncY.dE,
 		regInfo1000.FuncY.dF,
-		nX - nXRes/2, 
-		nY - nYRes/2);
+		(XnUInt16)(nX - nXRes/2), 
+		(XnUInt16)(nY - nYRes/2));
 }
 
 XnStatus XnRegistration::BuildRegTable1000()
@@ -84,7 +78,7 @@ XnStatus XnRegistration::BuildRegTable1000()
 	
 	// take needed parameters to perform registration
 	XnRegistrationInformation1000 regInfo1000;
-	nRetVal = XnHostProtocolAlgorithmParams(m_pDevicePrivateData, XN_HOST_PROTOCOL_ALGORITHM_REGISTRATION, &regInfo1000, sizeof(regInfo1000), m_pDepthStream->GetResolution(), m_pDepthStream->GetFPS());
+	nRetVal = XnHostProtocolAlgorithmParams(m_pDevicePrivateData, XN_HOST_PROTOCOL_ALGORITHM_REGISTRATION, &regInfo1000, sizeof(regInfo1000), m_pDepthStream->GetResolution(), (XnUInt16)m_pDepthStream->GetFPS());
 	XN_IS_STATUS_OK(nRetVal);
 	
 	XnUInt16* pRegTable = m_pRegistrationTable;
@@ -93,8 +87,8 @@ XnStatus XnRegistration::BuildRegTable1000()
 	XnDouble dNewX = 0,
 		dNewY = 0;
 
-	XnUInt64 nDepthXRes = m_pDepthStream->GetXRes();
-	XnUInt64 nDepthYRes = m_pDepthStream->GetYRes();
+	XnUInt32 nDepthXRes = m_pDepthStream->GetXRes();
+	XnUInt32 nDepthYRes = m_pDepthStream->GetYRes();
 
 	const XnUInt16 nIllegalValue = XnUInt16(nDepthXRes*4);
 
@@ -235,7 +229,6 @@ void CreateDXDYTables (XnDouble* RegXTable, XnDouble* RegYTable,
 #define XN_SENSOR_WIN_OFFET_Y 1
 #define RGB_REG_X_VAL_SCALE 16
 #define S2D_PEL_CONST 10
-#define XN_SENSOR_DEPTH_RGB_CMOS_DISTANCE 2.4
 #define S2D_CONST_OFFSET 0.375
 
 void BuildDepthToShiftTable(XnUInt16* pDepth2Shift, XnSensorDepthStream* m_pStream)
@@ -253,10 +246,14 @@ void BuildDepthToShiftTable(XnUInt16* pDepth2Shift, XnSensorDepthStream* m_pStre
 	XnUInt64 nPlaneDsr;
 	XnDouble dPlaneDsr;
 	m_pStream->GetProperty(XN_STREAM_PROPERTY_ZERO_PLANE_DISTANCE, &nPlaneDsr);
-	dPlaneDsr = nPlaneDsr;
+	dPlaneDsr = (XnDouble)nPlaneDsr;
+
+	// --avin mod-- (seems like a ps bug)
+	XnDouble dDCRCDist;
+	m_pStream->GetProperty(XN_STREAM_PROPERTY_DCMOS_RCMOS_DISTANCE, &dDCRCDist);
 
 	XnDouble dPelSize = 1.0 / (dPlanePixelSize * nXScale * S2D_PEL_CONST);
-	XnDouble dPelDCC = XN_SENSOR_DEPTH_RGB_CMOS_DISTANCE * dPelSize * S2D_PEL_CONST;
+	XnDouble dPelDCC = dDCRCDist * dPelSize * S2D_PEL_CONST;
 	XnDouble dPelDSR = dPlaneDsr * dPelSize * S2D_PEL_CONST;
 
 	memset(pRGBRegDepthToShiftTable, XN_DEVICE_SENSOR_NO_DEPTH_VALUE, nMaxDepth * sizeof(XnInt16));
@@ -264,7 +261,7 @@ void BuildDepthToShiftTable(XnUInt16* pDepth2Shift, XnSensorDepthStream* m_pStre
 	for (nIndex = 0; nIndex < nMaxDepth; nIndex++)
 	{
 		dDepth = nIndex * dPelSize;
-		pRGBRegDepthToShiftTable[nIndex] = ((dPelDCC * (dDepth - dPelDSR) / dDepth) + (S2D_CONST_OFFSET)) * RGB_REG_X_VAL_SCALE;
+		pRGBRegDepthToShiftTable[nIndex] = (XnInt16)(((dPelDCC * (dDepth - dPelDSR) / dDepth) + (S2D_CONST_OFFSET)) * RGB_REG_X_VAL_SCALE);
 	}
 }
 
@@ -274,11 +271,11 @@ XnStatus XnRegistration::BuildRegTable1080()
 	
 	// take needed parameters to perform registration
 	XnRegistrationInformation1080 RegData;
-	nRetVal = XnHostProtocolAlgorithmParams(m_pDevicePrivateData, XN_HOST_PROTOCOL_ALGORITHM_REGISTRATION, &RegData, sizeof(RegData), m_pDepthStream->GetResolution(), m_pDepthStream->GetFPS());
+	nRetVal = XnHostProtocolAlgorithmParams(m_pDevicePrivateData, XN_HOST_PROTOCOL_ALGORITHM_REGISTRATION, &RegData, sizeof(RegData), m_pDepthStream->GetResolution(), (XnUInt16)m_pDepthStream->GetFPS());
 	XN_IS_STATUS_OK(nRetVal);
 
 	xnOSMemSet(&m_padInfo, 0, sizeof(m_padInfo));
-	nRetVal = XnHostProtocolAlgorithmParams(m_pDevicePrivateData, XN_HOST_PROTOCOL_ALGORITHM_PADDING, &m_padInfo, sizeof(m_padInfo), m_pDepthStream->GetResolution(), m_pDepthStream->GetFPS());
+	nRetVal = XnHostProtocolAlgorithmParams(m_pDevicePrivateData, XN_HOST_PROTOCOL_ALGORITHM_PADDING, &m_padInfo, sizeof(m_padInfo), m_pDepthStream->GetResolution(), (XnUInt16)m_pDepthStream->GetFPS());
 	XN_IS_STATUS_OK(nRetVal);
 
 	XN_VALIDATE_ALIGNED_CALLOC(m_pDepthToShiftTable, XnUInt16, m_pDepthStream->GetXRes()*m_pDepthStream->GetYRes(), XN_DEFAULT_MEM_ALIGN);
@@ -289,10 +286,8 @@ XnStatus XnRegistration::BuildRegTable1080()
 	XnDouble* RegXTable = XN_NEW_ARR(XnDouble, RGB_REG_X_RES*RGB_REG_Y_RES);
 	XnDouble* RegYTable = XN_NEW_ARR(XnDouble, RGB_REG_X_RES*RGB_REG_Y_RES);
 
-	XnInt16* pRGBRegDepthToShiftTable = (XnInt16*)m_pDepthToShiftTable; 
 	XnUInt16 nDepthXRes = XN_DEPTH_XRES;
 	XnUInt16 nDepthYRes = XN_DEPTH_YRES;
-	XnUInt32 nXScale = XN_CMOS_VGAOUTPUT_XRES / XN_DEPTH_XRES;
 	XnDouble* pRegXTable = (XnDouble*)RegXTable;
 	XnDouble* pRegYTable = (XnDouble*)RegYTable;
 	XnInt16* pRegTable = (XnInt16*)m_pRegistrationTable;
@@ -347,14 +342,14 @@ XnStatus XnRegistration::BuildRegTable1080()
 				nNewX = ((nDepthXRes*4) * RGB_REG_X_VAL_SCALE); // set illegal value on purpose
 			}
 
-			if (nNewY > nDepthYRes)
+			if (nNewY > nDepthYRes-2)
 			{
 				nNewY = nDepthYRes;
 				goto FinishLoop;
 			}
 
-			*pRegTable = nNewX;
-			*(pRegTable+1) = nNewY;
+			*pRegTable = (XnInt16)nNewX;
+			*(pRegTable+1) = (XnInt16)nNewY;
 
 			pRegXTable++;
 			pRegYTable++;
@@ -371,8 +366,6 @@ FinishLoop:
 
 XnStatus XnRegistration::BuildRegTable()
 {
-	XnStatus nRetVal = XN_STATUS_OK;
-	
 	m_b1000 = (m_pDevicePrivateData->ChipInfo.nChipVer == XN_SENSOR_CHIP_VER_PS1000);
 	if (m_b1000)
 	{
@@ -382,8 +375,6 @@ XnStatus XnRegistration::BuildRegTable()
 	{
 		return BuildRegTable1080();
 	}
-	
-	return (XN_STATUS_OK);
 }
 
 XnStatus XnRegistration::Init(XnDevicePrivateData* pDevicePrivateData, XnSensorDepthStream* pDepthStream, XnUInt16* pDepthToShiftTable)
@@ -480,30 +471,17 @@ void XnRegistration::Apply1000(XnDepthPixel* pInput, XnDepthPixel* pOutput)
 			nNewX = (XnInt32)(XnDouble(*pRegTable)/XN_REG_X_SCALE + XnInt32(pDepth2ShiftTable[nValue]/XN_REG_PARAB_COEFF - nConstShift) * dShiftFactor);
 			nNewY = *(pRegTable+1);
 
-			// --avin mod--
-			if ( nNewX < nDepthXRes && nNewY < nDepthYRes )
+			if ((XnUInt32)nNewX-1 < (XnUInt32)nDepthXRes-1)
 			{
 				nArrPos = nNewY * nDepthXRes + nNewX;
 				nOutValue = pOutput[nArrPos];
 
 				if (nOutValue == 0 || nOutValue > nValue)
 				{
-					if ( nNewX > 0 && nNewY > 0 )
-					{
-						pOutput[nArrPos-nDepthXRes] = nValue;
-						pOutput[nArrPos-nDepthXRes-1] = nValue;
-						pOutput[nArrPos-1] = nValue;
-					}
-					else if( nNewY > 0 )
-					{
-						pOutput[nArrPos-nDepthXRes] = nValue;
-					}
-					else if( nNewX > 0 )
-					{
-						pOutput[nArrPos-1] = nValue;
-					}
-					
 					pOutput[nArrPos] = nValue;
+					pOutput[nArrPos-1] = nValue;
+					pOutput[nArrPos-nDepthXRes] = nValue;
+					pOutput[nArrPos-nDepthXRes-1] = nValue;
 				}
 			}
 		}
@@ -528,15 +506,13 @@ void XnRegistration::Apply1080(XnDepthPixel* pInput, XnDepthPixel* pOutput)
 	memset(pOutput, XN_DEVICE_SENSOR_NO_DEPTH_VALUE, nDepthXRes*nDepthYRes*sizeof(XnDepthPixel));
 
 	// entire map should be shifted by X lines
-	XnUInt32 nConstOffset = nDepthYRes*m_padInfo.nStartLines;
-
-	XnDepthPixel* pInputEnd = pInput + nDepthYRes*nDepthXRes;
+	XnUInt32 nConstOffset = nDepthXRes*m_padInfo.nStartLines;
 
 	XnBool bMirror = m_pDepthStream->IsMirrored();
 
 	for (XnUInt32 y = 0; y < nDepthYRes; ++y)
 	{
-		pRegTable = (XnInt16*)&m_pRegistrationTable[ bMirror ? (y+1) * nDepthXRes * 2 - 2 : y * nDepthXRes * 2 ];
+		pRegTable = (XnInt16*)&m_pRegistrationTable[ bMirror ? (y+1) * nDepthXRes * 2 : y * nDepthXRes * 2 ];
 		for (XnUInt32 x = 0; x < nDepthXRes; ++x)
 		{
 			nValue = *pInput;
@@ -546,9 +522,9 @@ void XnRegistration::Apply1080(XnDepthPixel* pInput, XnDepthPixel* pOutput)
 				nNewX = (XnUInt32)(*pRegTable + pRGBRegDepthToShiftTable[nValue]) / RGB_REG_X_VAL_SCALE;
 				nNewY = *(pRegTable+1);
 
-				if (nNewX < nDepthXRes && nNewY < nDepthYRes )
+				if (nNewX < nDepthXRes)
 				{
-					nArrPos = bMirror ? (nNewY+1)*nDepthXRes - nNewX - 2 : (nNewY*nDepthXRes) + nNewX;
+					nArrPos = bMirror ? (nNewY+1)*nDepthXRes - nNewX : (nNewY*nDepthXRes) + nNewX;
 					nArrPos -= nConstOffset;
 					
 					nOutValue = pOutput[nArrPos];
@@ -569,7 +545,7 @@ void XnRegistration::Apply1080(XnDepthPixel* pInput, XnDepthPixel* pOutput)
 						{
 							pOutput[nArrPos-1] = nValue;
 						}
-						
+
 						pOutput[nArrPos] = nValue;
 					}
 				}

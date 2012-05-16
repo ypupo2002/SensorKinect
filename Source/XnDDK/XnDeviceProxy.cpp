@@ -1,30 +1,24 @@
-/*****************************************************************************
-*                                                                            *
-*  PrimeSense Sensor 5.0 Alpha                                               *
-*  Copyright (C) 2010 PrimeSense Ltd.                                        *
-*                                                                            *
-*  This file is part of PrimeSense Common.                                   *
-*                                                                            *
-*  PrimeSense Sensor is free software: you can redistribute it and/or modify *
-*  it under the terms of the GNU Lesser General Public License as published  *
-*  by the Free Software Foundation, either version 3 of the License, or      *
-*  (at your option) any later version.                                       *
-*                                                                            *
-*  PrimeSense Sensor is distributed in the hope that it will be useful,      *
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of            *
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the              *
-*  GNU Lesser General Public License for more details.                       *
-*                                                                            *
-*  You should have received a copy of the GNU Lesser General Public License  *
-*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>. *
-*                                                                            *
-*****************************************************************************/
-
-
-
-
-
-
+/****************************************************************************
+*                                                                           *
+*  PrimeSense Sensor 5.x Alpha                                              *
+*  Copyright (C) 2011 PrimeSense Ltd.                                       *
+*                                                                           *
+*  This file is part of PrimeSense Sensor.                                  *
+*                                                                           *
+*  PrimeSense Sensor is free software: you can redistribute it and/or modify*
+*  it under the terms of the GNU Lesser General Public License as published *
+*  by the Free Software Foundation, either version 3 of the License, or     *
+*  (at your option) any later version.                                      *
+*                                                                           *
+*  PrimeSense Sensor is distributed in the hope that it will be useful,     *
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the             *
+*  GNU Lesser General Public License for more details.                      *
+*                                                                           *
+*  You should have received a copy of the GNU Lesser General Public License *
+*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>.*
+*                                                                           *
+****************************************************************************/
 //---------------------------------------------------------------------------
 // Includes
 //---------------------------------------------------------------------------
@@ -63,8 +57,6 @@ XnHash g_StreamOutputHash;
 //---------------------------------------------------------------------------
 XN_DDK_API XnStatus XnDeviceProxyGetDeviceList(XnDeviceDefinition* aDeviceDefinitions, XnUInt32* pnCount)
 {
-	XnStatus nRetVal = XN_STATUS_OK;
-
 	// take definitions
 	return XnDeviceManagerGetDeviceList(aDeviceDefinitions, pnCount);
 }
@@ -241,7 +233,6 @@ XN_DDK_API XnStatus XN_DEVICE_PROXY_PROTO(Enumerate)(XnConnectionString* aConnec
 	XnUInt32 nDeviceCount = 0;
 	XnConnectionString* pDeviceConnectionStrings = NULL;
 	XnUInt32 nTotalCount = 0;
-	XnDeviceDescriptor* pDescriptor = NULL;
 	XnChar csConnectionStringPrefix[XN_DEVICE_MAX_STRING_LENGTH];
 	XnUInt32 nBytesWritten = 0;
 
@@ -288,7 +279,7 @@ XN_DDK_API XnStatus XN_DEVICE_PROXY_PROTO(Create)(XnDeviceHandle* pDeviceHandle,
 
 	// copy device name
 	XnChar csDeviceName[XN_DEVICE_MAX_STRING_LENGTH];
-	nRetVal = xnOSStrNCopy(csDeviceName, pDeviceConfig->cpConnectionString, pSeparator - pDeviceConfig->cpConnectionString, XN_DEVICE_MAX_STRING_LENGTH);
+	nRetVal = xnOSStrNCopy(csDeviceName, pDeviceConfig->cpConnectionString, (XnUInt32)(pSeparator - pDeviceConfig->cpConnectionString), XN_DEVICE_MAX_STRING_LENGTH);
 	XN_IS_STATUS_OK(nRetVal);
 	csDeviceName[pSeparator - pDeviceConfig->cpConnectionString] = '\0';
 

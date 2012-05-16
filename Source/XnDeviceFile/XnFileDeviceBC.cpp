@@ -1,28 +1,24 @@
-/*****************************************************************************
-*                                                                            *
-*  PrimeSense Sensor 5.0 Alpha                                               *
-*  Copyright (C) 2010 PrimeSense Ltd.                                        *
-*                                                                            *
-*  This file is part of PrimeSense Common.                                   *
-*                                                                            *
-*  PrimeSense Sensor is free software: you can redistribute it and/or modify *
-*  it under the terms of the GNU Lesser General Public License as published  *
-*  by the Free Software Foundation, either version 3 of the License, or      *
-*  (at your option) any later version.                                       *
-*                                                                            *
-*  PrimeSense Sensor is distributed in the hope that it will be useful,      *
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of            *
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the              *
-*  GNU Lesser General Public License for more details.                       *
-*                                                                            *
-*  You should have received a copy of the GNU Lesser General Public License  *
-*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>. *
-*                                                                            *
-*****************************************************************************/
-
-
-
-
+/****************************************************************************
+*                                                                           *
+*  PrimeSense Sensor 5.x Alpha                                              *
+*  Copyright (C) 2011 PrimeSense Ltd.                                       *
+*                                                                           *
+*  This file is part of PrimeSense Sensor.                                  *
+*                                                                           *
+*  PrimeSense Sensor is free software: you can redistribute it and/or modify*
+*  it under the terms of the GNU Lesser General Public License as published *
+*  by the Free Software Foundation, either version 3 of the License, or     *
+*  (at your option) any later version.                                      *
+*                                                                           *
+*  PrimeSense Sensor is distributed in the hope that it will be useful,     *
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the             *
+*  GNU Lesser General Public License for more details.                      *
+*                                                                           *
+*  You should have received a copy of the GNU Lesser General Public License *
+*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>.*
+*                                                                           *
+****************************************************************************/
 #include "XnFileDevice.h"
 #include "XnDeviceFileReaderBC.h"
 #include <XnFormats/XnStreamCompression.h>
@@ -61,8 +57,6 @@ XnStatus XnFileDevice::BCInit()
 
 XnStatus XnFileDevice::BCCalculatePackedBufferSize()
 {
-	XnStatus nRetVal = XN_STATUS_OK;
-
 	XnStreamPropertiesV3* pStreamProperties = &m_pBCData->StreamProperties;
 	XnPackedStreamProperties* pPackedStreamProperties = &m_pBCData->PackedStreamProperties;
 
@@ -186,8 +180,6 @@ XnStatus XnFileDevice::BCCalculatePackedBufferSize()
 	nBufferSize += sizeof(XnPackedStreamFrameHeaderV3);
 
 	return nBufferSize;
-
-	return (XN_STATUS_OK);
 }
 
 XnStatus XnFileDevice::BCReadInitialState(XnPropertySet* pSet)
@@ -321,7 +313,7 @@ XnStatus XnFileDevice::BCReadInitialState(XnPropertySet* pSet)
 	return (XN_STATUS_OK);
 }
 
-XnStatus XnFileDevice::BCSeek(XnUInt64 nTimestamp)
+XnStatus XnFileDevice::BCSeek(XnUInt64 /*nTimestamp*/)
 {
 	return (XN_STATUS_IO_DEVICE_FUNCTION_NOT_SUPPORTED);
 }
@@ -453,10 +445,6 @@ XnStatus XnFileDevice::BCReadFrame(XnBool* pbWrapOccured)
 	// Local function variables
 	XnStatus nRetVal = XN_STATUS_OK;
 	XnDeviceFileFrameHeaderV3 FileFrameHeader;
-	XnUInt64 nCurrTime = 0;
-	XnUInt64 nDiffTime = 0;
-	XnUInt64 nFramesDiffTime = 0;
-	XnUInt32 nSleepTime = 0;
 
 	*pbWrapOccured = FALSE;
 

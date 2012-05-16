@@ -1,6 +1,63 @@
 Detailed Change log:
 --------------------
 
+Version 5.1.0.25 (Unstable version - Dec 18th 2011)
+---------------------------------------------------
+  * Bug Fix: server-client didn't always work due to an uninitialized member.
+  * Installer bug fix: versions were compared by string instead of by number.
+  * Added Support for FW 5.5:
+    1) Support product ID 0601.
+	2) ISO and BULK interfaces are now switched.
+	3) AudioGenerator is no longer supported.
+  * Enumeration Bug Fix: From now on, a generator will not return on enumeration if one already exists from the same device.
+  * Android: makefiles now match ndk v7.
+  * Bug Fix: client-server did not pass timestamp correct in the NewDataAvailbale event, causing FrameSync to malfunction.
+  * Bug Fix: Enumeration for ImageGenerator could cause a crash.
+  * Default UsbInterface is now BULK on Arm (for performance reasons) and ISO on all other platforms.
+  * Default Image format is now uncompressed in ISO, and compressed in BULK.
+  * Server (Multiprocess) is not on by default on Arm.
+  * BC Bug fix: XnVInitStreamPropertiesInternal::IsProperty did not function correctly. 
+  * BC Bug Fix: XnVDepthRepresentation would not set correct Y resolution.
+  * Added support for FW 5.6 (no audio)
+  * Added Android support to open source.
+  * Temporary patch for MacOSX: Cache the device path's since running enum on the MAC takes several seconds!  
+
+Version 5.0.5.1 (Unstable version - Nov 17th 2011)
+--------------------------------------------------
+  * Removed support for very old 2.0 devices.
+  * Linux: XnSensorServer dependency was missing.
+  * Bug Fix: AllowMultiUsers property was not handled correctly.
+
+Version 5.0.4.4 (Unstable version - Nov 7th 2011)
+-------------------------------------------------
+  * Added YUV input in high res for FW 5.3.28 and above.
+  * Added grayscale 8 input format.
+  * Added automatic setting of input format, and automatic checking of modes.
+  * Updated to newer common makefiles
+  * Sensor client-server on windows: Allow starting server and client in different sessions (requires a special setting in GlobalDefaults.ini, as this causes things not to work properly if running on a machine with UAC on).
+  * Changed Engine changed to Sensor in the final installation files.
+  * Renamed Linux-x86 to "Linux" (supports x86, x64, Arm and MacOSX).
+  * Allow better cross compiling.
+  * Bug Fix: old XNS files would not set their IsGenerating property (and so it is left FALSE, even if node has frames).
+  * Updated the value of the UsbInterface property once endpoints are opened.
+
+Version 5.0.4.3 (Stable version - Sep 18th 2011)
+------------------------------------------------
+  * Some minor windows installer UI fix (title position).
+  * Fixed buffer overflow bugs in the software registration.
+  * Support for firmware 5.4.x: New TEC and extended serial number commands.
+  * On newer FWs (5.4+) high-res image output does not always have to be bayer so this rule will only be enforced on older versions.
+  * Preliminary Android Support.
+  * Preliminary ARM Support.
+  * Win32: Added the /MP (MultiProcess Compiling) flag to all projects to save build time.
+  * Bug Fix: Image Generator always said it supports JPEG (without checking the sensor itself).
+  * Fix a memory leak (about 180 bytes per generator).
+
+Version 5.0.3.4 (Stable version - Jul 5th 2011)
+-----------------------------------------------
+  * Windows Redist: Support for 64-bit systems.
+  * Control mutex is now per sensor and not global to all sensors.
+
 Version 5.0.3.3 (Stable version - Jul 5th 2011)
 -----------------------------------------------
   * Linux: Allow installation to a different directory (for cross-compilation mainly).

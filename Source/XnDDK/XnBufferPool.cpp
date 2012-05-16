@@ -1,30 +1,24 @@
-/*****************************************************************************
-*                                                                            *
-*  PrimeSense Sensor 5.0 Alpha                                               *
-*  Copyright (C) 2010 PrimeSense Ltd.                                        *
-*                                                                            *
-*  This file is part of PrimeSense Common.                                   *
-*                                                                            *
-*  PrimeSense Sensor is free software: you can redistribute it and/or modify *
-*  it under the terms of the GNU Lesser General Public License as published  *
-*  by the Free Software Foundation, either version 3 of the License, or      *
-*  (at your option) any later version.                                       *
-*                                                                            *
-*  PrimeSense Sensor is distributed in the hope that it will be useful,      *
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of            *
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the              *
-*  GNU Lesser General Public License for more details.                       *
-*                                                                            *
-*  You should have received a copy of the GNU Lesser General Public License  *
-*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>. *
-*                                                                            *
-*****************************************************************************/
-
-
-
-
-
-
+/****************************************************************************
+*                                                                           *
+*  PrimeSense Sensor 5.x Alpha                                              *
+*  Copyright (C) 2011 PrimeSense Ltd.                                       *
+*                                                                           *
+*  This file is part of PrimeSense Sensor.                                  *
+*                                                                           *
+*  PrimeSense Sensor is free software: you can redistribute it and/or modify*
+*  it under the terms of the GNU Lesser General Public License as published *
+*  by the Free Software Foundation, either version 3 of the License, or     *
+*  (at your option) any later version.                                      *
+*                                                                           *
+*  PrimeSense Sensor is distributed in the hope that it will be useful,     *
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the             *
+*  GNU Lesser General Public License for more details.                      *
+*                                                                           *
+*  You should have received a copy of the GNU Lesser General Public License *
+*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>.*
+*                                                                           *
+****************************************************************************/
 //---------------------------------------------------------------------------
 // Includes
 //---------------------------------------------------------------------------
@@ -38,7 +32,7 @@ XnBufferPool::XnBufferPool(XnUInt32 nBufferCount) :
 	m_nBufferCount(nBufferCount),
 	m_nBufferSize(0),
 	m_hLock(NULL),
-	m_dump(XN_DUMP_CLOSED)
+	m_dump(NULL)
 {}
 
 XnBufferPool::~XnBufferPool()
@@ -50,7 +44,7 @@ XnStatus XnBufferPool::Init(XnUInt32 nBufferSize)
 {
 	XnStatus nRetVal = XN_STATUS_OK;
 	
-	xnDumpInit(&m_dump, "BufferPool", "", "bufferpool_%x.txt", this);
+	m_dump = xnDumpFileOpen("BufferPool", "bufferpool_%x.txt", this);
 
 	nRetVal = xnOSCreateCriticalSection(&m_hLock);
 	XN_IS_STATUS_OK(nRetVal);
@@ -75,7 +69,7 @@ XnStatus XnBufferPool::ChangeBufferSize(XnUInt32 nBufferSize)
 {
 	XnStatus nRetVal = XN_STATUS_OK;
 
-	xnDumpWriteString(m_dump, "changing buffer size to %d\n", nBufferSize);
+	xnDumpFileWriteString(m_dump, "changing buffer size to %d\n", nBufferSize);
 
 	xnOSEnterCriticalSection(&m_hLock);
 
@@ -95,8 +89,6 @@ XnStatus XnBufferPool::ChangeBufferSize(XnUInt32 nBufferSize)
 
 void XnBufferPool::FreeAll(XnBool bForceDestroyOfLockedBuffers)
 {
-	XnStatus nRetVal = XN_STATUS_OK;
-	
 	// free existing buffers
 	XnBuffersList::Iterator it = m_AllBuffers.begin();
 	while (it != m_AllBuffers.end())
@@ -149,7 +141,7 @@ XnStatus XnBufferPool::GetBuffer(XnBuffer** ppBuffer)
 	}
 
 	pBuffer->m_nRefCount = 1;
-	xnDumpWriteString(m_dump, "%u taken from pool\n", pBuffer->m_nID);
+	xnDumpFileWriteString(m_dump, "%u taken from pool\n", pBuffer->m_nID);
 
 	xnOSLeaveCriticalSection(&m_hLock);
 
@@ -169,7 +161,7 @@ void XnBufferPool::AddRef(XnBuffer* pBuffer)
 	XnBufferInPool* pBufferInPool = (XnBufferInPool*)pBuffer;
 	++pBufferInPool->m_nRefCount;
 
-	xnDumpWriteString(m_dump, "%u add ref (%d)\n", pBufferInPool->m_nID, pBufferInPool->m_nRefCount);
+	xnDumpFileWriteString(m_dump, "%u add ref (%d)\n", pBufferInPool->m_nID, pBufferInPool->m_nRefCount);
 
 	xnOSLeaveCriticalSection(&m_hLock);
 }
@@ -185,7 +177,7 @@ void XnBufferPool::DecRef(XnBuffer* pBuffer)
 
 	xnOSEnterCriticalSection(&m_hLock);
 
-	xnDumpWriteString(m_dump, "%u dec ref (%d)", pBufInPool->m_nID, pBufInPool->m_nRefCount-1);
+	xnDumpFileWriteString(m_dump, "%u dec ref (%d)", pBufInPool->m_nID, pBufInPool->m_nRefCount-1);
 
 	if (--pBufInPool->m_nRefCount == 0)
 	{
@@ -197,18 +189,18 @@ void XnBufferPool::DecRef(XnBuffer* pBuffer)
 			m_AllBuffers.Remove(it);
 			// and free it
 			DestroyBuffer(pBufInPool);
-			xnDumpWriteString(m_dump, "destroy!\n");
+			xnDumpFileWriteString(m_dump, "destroy!\n");
 		}
 		else
 		{
 			// return it to free buffers list
 			m_FreeBuffers.AddLast(pBufInPool);
-			xnDumpWriteString(m_dump, "return to pool!\n");
+			xnDumpFileWriteString(m_dump, "return to pool!\n");
 		}
 	}
 	else
 	{
-		xnDumpWriteString(m_dump, "\n");
+		xnDumpFileWriteString(m_dump, "\n");
 	}
 
 	xnOSLeaveCriticalSection(&m_hLock);

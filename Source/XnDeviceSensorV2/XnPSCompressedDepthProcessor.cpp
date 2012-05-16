@@ -1,30 +1,24 @@
-/*****************************************************************************
-*                                                                            *
-*  PrimeSense Sensor 5.0 Alpha                                               *
-*  Copyright (C) 2010 PrimeSense Ltd.                                        *
-*                                                                            *
-*  This file is part of PrimeSense Common.                                   *
-*                                                                            *
-*  PrimeSense Sensor is free software: you can redistribute it and/or modify *
-*  it under the terms of the GNU Lesser General Public License as published  *
-*  by the Free Software Foundation, either version 3 of the License, or      *
-*  (at your option) any later version.                                       *
-*                                                                            *
-*  PrimeSense Sensor is distributed in the hope that it will be useful,      *
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of            *
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the              *
-*  GNU Lesser General Public License for more details.                       *
-*                                                                            *
-*  You should have received a copy of the GNU Lesser General Public License  *
-*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>. *
-*                                                                            *
-*****************************************************************************/
-
-
-
-
-
-
+/****************************************************************************
+*                                                                           *
+*  PrimeSense Sensor 5.x Alpha                                              *
+*  Copyright (C) 2011 PrimeSense Ltd.                                       *
+*                                                                           *
+*  This file is part of PrimeSense Sensor.                                  *
+*                                                                           *
+*  PrimeSense Sensor is free software: you can redistribute it and/or modify*
+*  it under the terms of the GNU Lesser General Public License as published *
+*  by the Free Software Foundation, either version 3 of the License, or     *
+*  (at your option) any later version.                                      *
+*                                                                           *
+*  PrimeSense Sensor is distributed in the hope that it will be useful,     *
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the             *
+*  GNU Lesser General Public License for more details.                      *
+*                                                                           *
+*  You should have received a copy of the GNU Lesser General Public License *
+*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>.*
+*                                                                           *
+****************************************************************************/
 //---------------------------------------------------------------------------
 // Includes
 //---------------------------------------------------------------------------
@@ -106,7 +100,7 @@ XnPSCompressedDepthProcessor::~XnPSCompressedDepthProcessor()
 /** Gets a pointer to n elements before current input */
 #define GET_PREV_INPUT(n) __pCurrInput - n/2;
 
-#define GET_INPUT_READ_BYTES __pCurrInput - __pInputOrig;
+#define GET_INPUT_READ_BYTES (__pCurrInput - __pInputOrig);
 
 XnStatus XnPSCompressedDepthProcessor::UncompressDepthPS(const XnUInt8* pInput, const XnUInt32 nInputSize,
 								   XnUInt16* pOutput, XnUInt32* pnOutputSize,
@@ -129,7 +123,7 @@ XnStatus XnPSCompressedDepthProcessor::UncompressDepthPS(const XnUInt8* pInput, 
 	XnUInt32 nLargeValue;
 	XnBool bCanStop;
 
-	while (TRUE)
+	for (;;)
 	{
 		bCanStop = CAN_INPUT_STOP_HERE;
 		GET_NEXT_INPUT(nInput);
@@ -167,7 +161,7 @@ XnStatus XnPSCompressedDepthProcessor::UncompressDepthPS(const XnUInt8* pInput, 
 
 				nLargeValue |= nInput;
 				// diff values are from -64 to 63 (0x00 to 0x7f)
-				nLastValue += nLargeValue - 64;
+				nLastValue += ((XnInt16)nLargeValue - 64);
 			}
 			else // Full value (15-bit)
 			{
@@ -188,7 +182,7 @@ XnStatus XnPSCompressedDepthProcessor::UncompressDepthPS(const XnUInt8* pInput, 
 				nLargeValue |= nInput << 4;
 
 				GET_NEXT_INPUT(nInput);
-				nLastValue = (nLargeValue | nInput);
+				nLastValue = (XnUInt16)(nLargeValue | nInput);
 			}
 
 			XN_DEPTH_OUTPUT(pOutput, pOutputEnd, nLastValue);
@@ -196,20 +190,20 @@ XnStatus XnPSCompressedDepthProcessor::UncompressDepthPS(const XnUInt8* pInput, 
 			break;
 		default: // all rest (smaller than 0xd) are diffs
 			// diff values are from -6 to 6 (0x0 to 0xc)
-			nLastValue += nInput - 6;
+			nLastValue += ((XnInt16)nInput - 6);
 			XN_DEPTH_OUTPUT(pOutput, pOutputEnd, nLastValue);
 		}
 	}
 
 	if (bLastPart == TRUE)
 	{
-		*pnOutputSize = (pOutput - pOutputOrig) * sizeof(XnUInt16);
-		*pnActualRead = GET_INPUT_READ_BYTES;
+		*pnOutputSize = (XnUInt32)(pOutput - pOutputOrig) * sizeof(XnUInt16);
+		*pnActualRead = (XnUInt32)GET_INPUT_READ_BYTES;
 	}
 	else
 	{
-		*pnOutputSize = (pOutputLastPossibleStop - pOutputOrig) * sizeof(XnUInt16);
-		*pnActualRead = (pInputLastPossibleStop - pInputOrig) * sizeof(XnUInt8);
+		*pnOutputSize = (XnUInt32)(pOutputLastPossibleStop - pOutputOrig) * sizeof(XnUInt16);
+		*pnActualRead = (XnUInt32)(pInputLastPossibleStop - pInputOrig) * sizeof(XnUInt8);
 	}
 
 	// All is good...

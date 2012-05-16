@@ -1,30 +1,24 @@
-/*****************************************************************************
-*                                                                            *
-*  PrimeSense Sensor 5.0 Alpha                                               *
-*  Copyright (C) 2010 PrimeSense Ltd.                                        *
-*                                                                            *
-*  This file is part of PrimeSense Common.                                   *
-*                                                                            *
-*  PrimeSense Sensor is free software: you can redistribute it and/or modify *
-*  it under the terms of the GNU Lesser General Public License as published  *
-*  by the Free Software Foundation, either version 3 of the License, or      *
-*  (at your option) any later version.                                       *
-*                                                                            *
-*  PrimeSense Sensor is distributed in the hope that it will be useful,      *
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of            *
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the              *
-*  GNU Lesser General Public License for more details.                       *
-*                                                                            *
-*  You should have received a copy of the GNU Lesser General Public License  *
-*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>. *
-*                                                                            *
-*****************************************************************************/
-
-
-
-
-
-
+/****************************************************************************
+*                                                                           *
+*  PrimeSense Sensor 5.x Alpha                                              *
+*  Copyright (C) 2011 PrimeSense Ltd.                                       *
+*                                                                           *
+*  This file is part of PrimeSense Sensor.                                  *
+*                                                                           *
+*  PrimeSense Sensor is free software: you can redistribute it and/or modify*
+*  it under the terms of the GNU Lesser General Public License as published *
+*  by the Free Software Foundation, either version 3 of the License, or     *
+*  (at your option) any later version.                                      *
+*                                                                           *
+*  PrimeSense Sensor is distributed in the hope that it will be useful,     *
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the             *
+*  GNU Lesser General Public License for more details.                      *
+*                                                                           *
+*  You should have received a copy of the GNU Lesser General Public License *
+*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>.*
+*                                                                           *
+****************************************************************************/
 //---------------------------------------------------------------------------
 // Includes
 //---------------------------------------------------------------------------
@@ -39,16 +33,16 @@ XnFrameStreamProcessor::XnFrameStreamProcessor(XnFrameStream* pStream, XnSensorS
 	m_nTypeSOF(nTypeSOF),
 	m_nTypeEOF(nTypeEOF),
 	m_pTripleBuffer(pStream->GetTripleBuffer()),
-	m_InDump(XN_DUMP_CLOSED),
-	m_InternalDump(XN_DUMP_CLOSED),
+	m_InDump(NULL),
+	m_InternalDump(NULL),
 	m_bFrameCorrupted(FALSE),
 	m_bAllowDoubleSOF(FALSE),
 	m_nLastSOFPacketID(0)
 {
 	sprintf(m_csInDumpMask, "%sIn", pStream->GetType());
 	sprintf(m_csInternalDumpMask, "Internal%s", pStream->GetType());
-	xnDumpInit(&m_InDump, m_csInDumpMask, NULL, "%s_0.raw", m_csInDumpMask);
-	xnDumpInit(&m_InternalDump, m_csInternalDumpMask, NULL, "%s_0.raw", m_csInternalDumpMask);
+	m_InDump = xnDumpFileOpen(m_csInDumpMask, "%s_0.raw", m_csInDumpMask);
+	m_InternalDump = xnDumpFileOpen(m_csInternalDumpMask, "%s_0.raw", m_csInternalDumpMask);
 }
 
 XnFrameStreamProcessor::~XnFrameStreamProcessor()
@@ -71,7 +65,7 @@ void XnFrameStreamProcessor::ProcessPacketChunk(const XnSensorProtocolResponseHe
 
 	if (!m_bFrameCorrupted)
 	{
-		xnDumpWriteBuffer(m_InDump, pData, nDataSize);
+		xnDumpFileWriteBuffer(m_InDump, pData, nDataSize);
 		ProcessFramePacketChunk(pHeader, pData, nDataOffset, nDataSize);
 	}
 
@@ -89,7 +83,7 @@ void XnFrameStreamProcessor::OnPacketLost()
 	FrameIsCorrupted();
 }
 
-void XnFrameStreamProcessor::OnStartOfFrame(const XnSensorProtocolResponseHeader* pHeader)
+void XnFrameStreamProcessor::OnStartOfFrame(const XnSensorProtocolResponseHeader* /*pHeader*/)
 {
 	m_bFrameCorrupted = FALSE;
 	m_pTripleBuffer->GetWriteBuffer()->Reset();
@@ -99,9 +93,9 @@ void XnFrameStreamProcessor::OnEndOfFrame(const XnSensorProtocolResponseHeader* 
 {
 	// write dump
 	XnBuffer* pCurWriteBuffer = m_pTripleBuffer->GetWriteBuffer();
-	xnDumpWriteBuffer(m_InternalDump, pCurWriteBuffer->GetData(), pCurWriteBuffer->GetSize());
-	xnDumpClose(&m_InternalDump);
-	xnDumpClose(&m_InDump);
+	xnDumpFileWriteBuffer(m_InternalDump, pCurWriteBuffer->GetData(), pCurWriteBuffer->GetSize());
+	xnDumpFileClose(m_InternalDump);
+	xnDumpFileClose(m_InDump);
 
 	if (!m_bFrameCorrupted)
 	{
@@ -122,12 +116,12 @@ void XnFrameStreamProcessor::OnEndOfFrame(const XnSensorProtocolResponseHeader* 
 	// log bandwidth
 	XnUInt64 nSysTime;
 	xnOSGetTimeStamp(&nSysTime);
-	xnDumpWriteString(m_pDevicePrivateData->BandwidthDump, "%llu,%s,%d,%d\n", 
+	xnDumpFileWriteString(m_pDevicePrivateData->BandwidthDump, "%llu,%s,%d,%d\n", 
 		nSysTime, m_csName, GetCurrentFrameID(), m_nBytesReceived);
 
 	// re-init dumps
-	xnDumpInit(&m_InDump, m_csInDumpMask, NULL, "%s_%d.raw", m_csInDumpMask, GetCurrentFrameID());
-	xnDumpInit(&m_InternalDump, m_csInternalDumpMask, NULL, "%s_%d.raw", m_csInternalDumpMask, GetCurrentFrameID());
+	m_InDump = xnDumpFileOpen(m_csInDumpMask, "%s_%d.raw", m_csInDumpMask, GetCurrentFrameID());
+	m_InternalDump = xnDumpFileOpen(m_csInternalDumpMask, "%s_%d.raw", m_csInternalDumpMask, GetCurrentFrameID());
 	m_nBytesReceived = 0;
 }
 

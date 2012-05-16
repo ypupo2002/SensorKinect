@@ -1,30 +1,24 @@
-/*****************************************************************************
-*                                                                            *
-*  PrimeSense Sensor 5.0 Alpha                                               *
-*  Copyright (C) 2010 PrimeSense Ltd.                                        *
-*                                                                            *
-*  This file is part of PrimeSense Common.                                   *
-*                                                                            *
-*  PrimeSense Sensor is free software: you can redistribute it and/or modify *
-*  it under the terms of the GNU Lesser General Public License as published  *
-*  by the Free Software Foundation, either version 3 of the License, or      *
-*  (at your option) any later version.                                       *
-*                                                                            *
-*  PrimeSense Sensor is distributed in the hope that it will be useful,      *
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of            *
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the              *
-*  GNU Lesser General Public License for more details.                       *
-*                                                                            *
-*  You should have received a copy of the GNU Lesser General Public License  *
-*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>. *
-*                                                                            *
-*****************************************************************************/
-
-
-
-
-
-
+/****************************************************************************
+*                                                                           *
+*  PrimeSense Sensor 5.x Alpha                                              *
+*  Copyright (C) 2011 PrimeSense Ltd.                                       *
+*                                                                           *
+*  This file is part of PrimeSense Sensor.                                  *
+*                                                                           *
+*  PrimeSense Sensor is free software: you can redistribute it and/or modify*
+*  it under the terms of the GNU Lesser General Public License as published *
+*  by the Free Software Foundation, either version 3 of the License, or     *
+*  (at your option) any later version.                                      *
+*                                                                           *
+*  PrimeSense Sensor is distributed in the hope that it will be useful,     *
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the             *
+*  GNU Lesser General Public License for more details.                      *
+*                                                                           *
+*  You should have received a copy of the GNU Lesser General Public License *
+*  along with PrimeSense Sensor. If not, see <http://www.gnu.org/licenses/>.*
+*                                                                           *
+****************************************************************************/
 //---------------------------------------------------------------------------
 // Includes
 //---------------------------------------------------------------------------
@@ -87,7 +81,7 @@ XnStatus XnSensorAudioGenerator::Init()
 
 XnBool XnSensorAudioGenerator::IsCapabilitySupported(const XnChar* strCapabilityName)
 {
-	return FALSE;
+	return XnSensorGenerator::IsCapabilitySupported(strCapabilityName);
 }
 
 XnUChar* XnSensorAudioGenerator::GetAudioBuffer()
@@ -102,8 +96,6 @@ XnUInt32 XnSensorAudioGenerator::GetSupportedWaveOutputModesCount()
 
 XnStatus XnSensorAudioGenerator::GetSupportedWaveOutputModes(XnWaveOutputMode aSupportedModes[], XnUInt32& nCount)
 {
-	XnStatus nRetVal = XN_STATUS_OK;
-	
 	XN_VALIDATE_INPUT_PTR(aSupportedModes);
 
 	if (nCount < m_SupportedModes.Size())
@@ -184,6 +176,47 @@ void XnSensorAudioGenerator::FilterProperties(XnActualPropertiesHash* pHash)
 XnExportedSensorAudioGenerator::XnExportedSensorAudioGenerator() :
 	XnExportedSensorGenerator(XN_NODE_TYPE_AUDIO, XN_STREAM_TYPE_AUDIO, FALSE)
 {}
+
+XnStatus XnExportedSensorAudioGenerator::IsSupportedForDevice(xn::Context& context, xn::NodeInfo& sensorInfo, XnBool* pbSupported)
+{
+	XnStatus nRetVal = XN_STATUS_OK;
+
+	nRetVal = XnExportedSensorGenerator::IsSupportedForDevice(context, sensorInfo, pbSupported);
+	XN_IS_STATUS_OK(nRetVal);
+
+	if (*pbSupported == FALSE)
+	{
+		return XN_STATUS_OK;
+	}
+
+	xn::Device sensor;
+	nRetVal = sensorInfo.GetInstance(sensor);
+	XN_IS_STATUS_OK(nRetVal);
+
+	XnBool bShouldBeCreated = (!sensor.IsValid());
+
+	if (bShouldBeCreated)
+	{
+		nRetVal = context.CreateProductionTree(sensorInfo, sensor);
+		XN_IS_STATUS_OK(nRetVal);
+	}
+
+	// check if firmware supports audio
+	XnUInt64 nAudioSupported = FALSE;
+	nRetVal = sensor.GetIntProperty(XN_MODULE_PROPERTY_AUDIO_SUPPORTED, nAudioSupported);
+	XN_IS_STATUS_OK(nRetVal);
+	if (nAudioSupported != TRUE)
+	{
+		*pbSupported = FALSE;
+	}
+
+	if (bShouldBeCreated)
+	{
+		sensor.Release();
+	}
+
+	return (XN_STATUS_OK);
+}
 
 XnSensorGenerator* XnExportedSensorAudioGenerator::CreateGenerator(xn::Context& context, xn::Device& sensor, XnDeviceBase* pSensor, const XnChar* strStreamName)
 {

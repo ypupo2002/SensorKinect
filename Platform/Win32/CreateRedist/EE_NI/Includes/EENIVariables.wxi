@@ -5,15 +5,15 @@
   It's not enough to just include newer files.
   -->
   <?define MajorVersion=5?>
-  <?define MinorVersion=0?>
-  <?define MaintenanceVersion=3?>
+  <?define MinorVersion=1?>
+  <?define MaintenanceVersion=0?>
   <!-- BuildVersion is NOT used by WiX in the upgrade procedure -->
-  <?define BuildVersion=3?>
+  <?define BuildVersion=25?>
   
   <!-- Full version number to display -->
   <?define VersionNumber="$(var.MajorVersion).$(var.MinorVersion).$(var.MaintenanceVersion).$(var.BuildVersion)" ?>
 
-  <?define OpenNIVersion="1.2.0.4"?>
+  <?define OpenNIVersion="1.5.2.7"?>
 
   <!--
   Path to the resources directory. resources don't really need to be included
@@ -32,12 +32,14 @@
     <?define PlatformSuffix=""?>
     <?define PlatformProgramFilesFolder = "ProgramFilesFolder" ?>
     <?define ProductFullName=!(loc.ProductName) $(var.VersionNumber) !(loc.ProductNameSuffix)?>
+<!-- avin mod -->
     <?define ProductShortName=SensorKinect?>
     <?define UpgradeCode="E00A2C0F-15EA-447c-A976-1234AEA89EBE"  ?>
   <?else?>
     <?define PlatformSuffix="64"?>        
     <?define PlatformProgramFilesFolder = "ProgramFiles64Folder" ?>
     <?define ProductFullName=!(loc.ProductName) $(var.VersionNumber) !(loc.ProductName64Suffix)?>
+<!-- avin mod -->
     <?define ProductShortName=SensorKinect !(loc.ProductName64Suffix)?>
     <?define UpgradeCode="E6674B5C-6086-480c-85D5-1234F5B546DA"  ?>
   <?endif?>
