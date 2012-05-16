@@ -1,89 +1,5 @@
-PrimeSense Sensor Module for OpenNI (Version 5.1.0.25 version - Dec 18th 2011)
-------------------------------------------------------------------------------
-
-Kinect Mod:
------------
-
-***** Important notice: *****
-You must use this kinect mod version with the unstable OpenNI release which is available at:
-http://www.openni.org/Downloads/OpenNIModules.aspx
-
-Changes:
-v0.91:
-	1) Removed an unnecessary USB set interface command that caused timeout problems on Linux & Mac.
-
-v0.9:
-	1) Updated codebase to the latest OpenNI / Sensor version (1.5.2.7 / 5.1.0.25)
-	2) Changed the Bayer-to-RGB function to use the ROS (www.ros.org) code as requested by many community members.
-	   (Thanks to Suat Gedikli from Willow Garage for writing the code and to Raphael Dumusc for the OpenNI adaptation!)
-
-v0.8:
-	1) Updated codebase to the latest OpenNI / Sensor version (1.4.0.2 / 5.0.5.1)
-
-v0.7:
-	1) Updated codebase to the latest OpenNI / Sensor version (1.3.2.3 / 5.0.3.34)
-	2) Added a 64-bit binary installer for Windows.
-
-v0.6:
-	1) Updated codebase to the latest OpenNI / Sensor version (1.3.2.1 / 5.0.3.33)
-
-v0.5:
-	1) Updated codebase to the latest OpenNI / Sensor version (1.1.0.39 / 5.0.1.32)
-	2) Changed to install directory from Sensor to SensorKinect to co-exist with the original PrimeSense Sensor module.
-
-v0.4:
-	1) Merged code with the new unstable sensor driver from PrimeSense that adds MacOSX and multiple sensor support.
-	2) Added precompiled binaries for Linux & MacOSX.
-
-v0.3:
-	1) Added support for high-res 1280x1024 IR and Image (at ~10 FPS)
-	   Checkout the file OPENNI\Data\SamplesConfig.xml for usage example.
-	   (Copy it to your OpenNI\Data dir and use NiViewer to test the different resolutions)
-
-v0.2:
-	1) VS2010 redist will now be installed automatically.
-	2) The driver will now also be installed automatically on both x86 and x64 machines.
-	3) Turned off the IR projector anti-cover thingy. It is off on the Xbox360 so it must be safe and it was very annoying...
-
-v0.1:
-	1) Added the kinect USB VID/PID to the PSDrv3 driver and to the code.
-	2) Changed the packet sequence field from 16-bit to 8-bit (don't know why it's different...)
-	3) Changed the image format from YUV to 8-bit uncompressed bayer in the GlobalDefaults.ini file.
-	4) Fixed the software depth-to-RGB registration. (Thanks ROS.org for that!)
-
-Install notes:
-	1) Install unstable OpenNI (http://www.openni.org/Downloads/OpenNIModules.aspx)
-	   On Linux/Mac please do: ./sudo install.sh
-	2) Install Sensor (this version...)
-	   On Linux/Mac please do: ./sudo install.sh
-	3) Install unstable NITE (http://www.openni.org/downloadfiles/opennimodules/openni-compliant-middleware-binaries/33-latest-unstable)
-	   On Linux/Mac please do: ./sudo install.sh
-	4) Test #1: Run the NiViewer sample to make sure depth & image streams are working.
-	5) Test #2: Run the OpenNI/NiUserTracker sample play with the skeleton.
-	6) Test #3: Try the NITE/Sample-PointViewer sample for the hand tracking demo.
-
-	For Mac/Linux, you will need to install the latest LibUSB.
-	Linux:
-		1) Run: sudo apt-get install libusb-1.0-0-dev
-		2) Run: sudo apt-get install freeglut3-dev
-	MaxOSX:
-		1) Install MacPorts from: http://distfiles.macports.org/MacPorts/MacPorts-1.9.2-10.6-SnowLeopard.dmg
-		2) Run: sudo port install libtool
-		3) Run: sudo port install libusb-devel +universal
-		   Note: Do not forget the +universal, it's very important!!
-		   If you're previously already installed libusb-devel then use "sudo port uninstall libusb-devel" and reinstall it again with the +universal flag.
-TIPs:
-	1) If the driver is installed correctly you should see "Kinect Camera" and "Kinect Motor" under the "PrimeSensor" category in the device manager.
-	   If not, try to install the driver manually by running the dp-inst files from the Driver directory.
-	
-Todo:
-	1) Add motor & led control.
-	2) Add audio.
-
-The source code for this version is available at:
-https://github.com/avin2/SensorKinect	
-	
--------------------------- ORIGINAL README BELOW --------------------------
+PrimeSense Sensor Module for OpenNI (Version 5.1.2.1 - May 15th 2012)
+---------------------------------------------------------------------
 
 Website: http://www.primesense.com
 Forum: http://groups.google.com/group/openni-dev
@@ -119,7 +35,7 @@ Build Notes:
 ------------
 Windows:
 	Requirements:
-		1) Microsoft Visual Studio 2008/2010
+		1) Microsoft Visual Studio 2010
 		   From: http://msdn.microsoft.com/en-us/vstudio/bb984878.aspx
 		2) Python 2.6+/3.x
 		   From: http://www.python.org/download/
@@ -128,7 +44,7 @@ Windows:
 		   Please make sure you download the version that matches your exact python version.
 		4) WIX 3.5
 		   From: http://wix.codeplex.com/releases/view/60102
-		5) OpenNI 1.3.x.x
+		5) OpenNI 1.5.x.x
 		   From: http://www.openni.org/Downloads/OpenNIModules.aspx	
 
 	Optional Requirements (To build the documentation):
@@ -159,7 +75,7 @@ Linux:
 		   From: http://www.python.org/download/
 		   Or via apt:
 		   sudo apt-get install python
-		3) OpenNI 1.3.x.x
+		3) OpenNI 1.5.x.x
 		   From: http://www.openni.org/Downloads/OpenNIModules.aspx
 		   
 	Building Sensor:
@@ -207,11 +123,25 @@ Linux:
 		
 MacOSX:
 	Requirements:
-		1) Xcode 3.2.6
-		   From: http://developer.apple.com/devcenter/mac/index.action
-		   http://developer.apple.com/devcenter/download.action?path=/Developer_Tools/xcode_3.2.6_and_ios_sdk_4.3__final/xcode_3.2.6_and_ios_sdk_4.3.dmg
-		   Please note that you need to register as a mac developer (It's free!).		   
-		2) OpenNI 1.3.x.x
+		1) For Mac OSX 10.7, Xcode 4.3.2
+		      From: http://developer.apple.com/devcenter/mac/index.action
+		      http://adcdownload.apple.com/Developer_Tools/xcode_4.3.2/xcode_432_lion.dmg    
+   
+		      You will also need to download and install the "Commandline Tools for XCode - Late March 2012" package:
+		      http://adcdownload.apple.com/Developer_Tools/command_line_tools_for_xcode_4.4__late_march_2012/cltools_lion_latemarch12.dmg
+		   
+		      Note: Since Xcode is now a normal application, it no longer automatically install itself. You have to copy&paste Xcode yourself into your Applications folder. 
+			        (or run the application "Install Xcode" from your Applications folder / LaunchPad). 		   
+			        It's also recommended to run the following command after you do the above:
+				      sudo xcode-select -switch /Applications/Xcode.app/
+		   
+		   For Mac OSX 10.6, Xcode 3.2.6:
+		      From: http://developer.apple.com/devcenter/mac/index.action
+		      http://developer.apple.com/devcenter/download.action?path=/Developer_Tools/xcode_3.2.6_and_ios_sdk_4.3__final/xcode_3.2.6_and_ios_sdk_4.3.dmg
+			   
+		   Please note that you need to register as a mac developer (It's free!).
+		   
+		2) OpenNI 1.5.x.x
 		   From: http://www.openni.org/Downloads/OpenNIModules.aspx
 		   	   
 	Building Sensor:

@@ -16,13 +16,12 @@ Installs PrimeSense Sensor Driver to current machine.
 
 OS_NAME=`uname -s`
 
-#--avin mod--
 case $OS_NAME in
 Darwin)
-    MODULES="libXnDeviceSensorV2KM.dylib libXnDeviceFile.dylib"
+    MODULES="libXnDeviceSensorV2.dylib libXnDeviceFile.dylib"
     ;;
 *)
-    MODULES="libXnDeviceSensorV2KM.so libXnDeviceFile.so"
+    MODULES="libXnDeviceSensorV2.so libXnDeviceFile.so"
     ;;
 esac
 
@@ -110,8 +109,7 @@ if [ "$install" = yes ]; then
 
     # copy config file
     printf "copying server config file..."
-#--avin mod--
-    cp Config/GlobalDefaultsKinect.ini $INSTALL_ETC
+    cp Config/GlobalDefaults.ini $INSTALL_ETC
     printf "OK\n"
 
     # make server run as root

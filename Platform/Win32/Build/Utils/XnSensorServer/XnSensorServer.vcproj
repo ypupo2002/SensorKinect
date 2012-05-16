@@ -66,7 +66,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="openNI.lib XnDDK.lib XnDeviceSensorV2KM.lib XnFormats.lib "
+				AdditionalDependencies="openNI.lib XnDDK.lib XnDeviceSensorV2.lib XnFormats.lib "
 				OutputFile="../../../Bin/$(ConfigurationName)/$(ProjectName).exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;$(OPEN_NI_LIB)&quot;;../../../Lib/$(ConfigurationName)"
@@ -145,7 +145,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="openNI64.lib XnDDK64.lib XnDeviceSensorV2KM64.lib XnFormats64.lib "
+				AdditionalDependencies="openNI64.lib XnDDK64.lib XnDeviceSensorV264.lib XnFormats64.lib "
 				OutputFile="../../../Bin64/$(ConfigurationName)/$(ProjectName)64.exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;$(OPEN_NI_LIB64)&quot;;../../../Lib64/$(ConfigurationName)"
@@ -232,7 +232,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="openNI.lib XnDDK.lib XnDeviceSensorV2KM.lib XnFormats.lib "
+				AdditionalDependencies="openNI.lib XnDDK.lib XnDeviceSensorV2.lib XnFormats.lib "
 				OutputFile="../../../Bin/$(ConfigurationName)/$(ProjectName).exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="&quot;$(OPEN_NI_LIB)&quot;;../../../Lib/$(ConfigurationName)"
@@ -320,7 +320,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="openNI64.lib XnDDK64.lib XnDeviceSensorV2KM64.lib XnFormats64.lib "
+				AdditionalDependencies="openNI64.lib XnDDK64.lib XnDeviceSensorV264.lib XnFormats64.lib "
 				OutputFile="../../../Bin64/$(ConfigurationName)/$(ProjectName)64.exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="&quot;$(OPEN_NI_LIB64)&quot;;../../../Lib64/$(ConfigurationName)"
