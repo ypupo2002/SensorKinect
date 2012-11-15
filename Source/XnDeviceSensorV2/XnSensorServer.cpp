@@ -82,6 +82,7 @@ XnBool XnSensorServer::IsServerRunning()
 XnStatus XnSensorServer::InitServer()
 {
 	XnStatus nRetVal = XN_STATUS_OK;
+	xnLogError(XN_MASK_SENSOR_SERVER, "Starting server", xnGetStatusString(nRetVal));
 
 	XnBool bEnableMultiUsers = FALSE;
 
