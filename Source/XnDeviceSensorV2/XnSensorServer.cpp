@@ -136,8 +136,18 @@ XnStatus XnSensorServer::InitServer()
 	nRetVal = xnOSCreateCriticalSection(&m_hSessionsLock);
 	XN_IS_STATUS_OK(nRetVal);
 
+	XnChar strListenAddress[XN_INI_MAX_LEN];
+	if (XN_STATUS_OK == xnOSReadStringFromINI(m_strConfigFile, XN_SENSOR_SERVER_CONFIG_FILE_SECTION, "ServerListenAddress", strListenAddress, XN_INI_MAX_LEN))
+	{
+		xnLogInfo(XN_MASK_SENSOR_SERVER, "Listen address: %s", strListenAddress);
+	}
+	else {
+		strcpy(strListenAddress, XN_SENSOR_SERVER_IP_ADDRESS);
+		xnLogInfo(XN_MASK_SENSOR_SERVER, "Listen address: %s", strListenAddress);
+	}
+
 	// create the listen socket
-	nRetVal = xnOSCreateSocket(XN_OS_TCP_SOCKET, XN_SENSOR_SERVER_IP_ADDRESS, XN_SENSOR_SERVER_PORT, &m_hListenSocket);
+	nRetVal = xnOSCreateSocket(XN_OS_TCP_SOCKET, strListenAddress, XN_SENSOR_SERVER_PORT, &m_hListenSocket);
 	XN_IS_STATUS_OK(nRetVal);
 
 	// bind it
